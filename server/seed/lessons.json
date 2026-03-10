@@ -1,0 +1,83 @@
+[
+  {
+    "title": "Getting Started with Guitar",
+    "instrument": "guitar",
+    "difficulty": "beginner",
+    "videoUrl": "https://www.youtube.com/embed/BBz-Jyr23M4",
+    "content": "In this lesson, you will learn the parts of the guitar, how to hold it, and how to tune the strings.",
+    "thumbnail": "https://img.youtube.com/vi/BBz-Jyr23M4/0.jpg",
+    "order": 1
+  },
+  {
+    "title": "Basic Open Chords",
+    "instrument": "guitar",
+    "difficulty": "beginner",
+    "videoUrl": "https://www.youtube.com/embed/3u1q91jQ8n4",
+    "content": "Learn your first major and minor chords: E minor, A major, D major.",
+    "thumbnail": "https://img.youtube.com/vi/3u1q91jQ8n4/0.jpg",
+    "order": 2
+  },
+  {
+      "title": "Intermediate Strumming Patterns",
+      "instrument": "guitar",
+      "difficulty": "intermediate",
+      "videoUrl": "https://www.youtube.com/embed/W-w3s3t8s3s",
+      "content": "Mastering the rhythm is key. Learn syncopated strumming.",
+      "thumbnail": "https://img.youtube.com/vi/W-w3s3t8s3s/0.jpg",
+      "order": 3
+  },
+  {
+    "title": "Bass Guitar Basics",
+    "instrument": "bass",
+    "difficulty": "beginner",
+    "videoUrl": "https://www.youtube.com/embed/XyX7t-z0em8",
+    "content": "Proper plucking technique and holding the bass.",
+    "thumbnail": "https://img.youtube.com/vi/XyX7t-z0em8/0.jpg",
+    "order": 1
+  },
+  {
+      "title": "Slap Bass 101",
+      "instrument": "bass",
+      "difficulty": "intermediate",
+      "videoUrl": "https://www.youtube.com/embed/HkC54B2k8eU",
+      "content": "Introduction to slap and pop technique.",
+      "thumbnail": "https://img.youtube.com/vi/HkC54B2k8eU/0.jpg",
+      "order": 2
+  },
+  {
+    "title": "Drum Kit Setup",
+    "instrument": "drums",
+    "difficulty": "beginner",
+    "videoUrl": "https://www.youtube.com/embed/47K4tqIuJtM",
+    "content": "How to set up your kit for comfort and efficiency.",
+    "thumbnail": "https://img.youtube.com/vi/47K4tqIuJtM/0.jpg",
+    "order": 1
+  },
+  {
+      "title": "Basic Rock Beat",
+      "instrument": "drums",
+      "difficulty": "beginner",
+      "videoUrl": "https://www.youtube.com/embed/Vj3U48Z6K1E",
+      "content": "Learn the standard 4/4 rock beat.",
+      "thumbnail": "https://img.youtube.com/vi/Vj3U48Z6K1E/0.jpg",
+      "order": 2
+  },
+  {
+    "title": "Piano Notes and Keys",
+    "instrument": "keyboard",
+    "difficulty": "beginner",
+    "videoUrl": "https://www.youtube.com/embed/1D3a3F5h3Ro",
+    "content": "Understanding the layout of the keyboard and the names of the notes.",
+    "thumbnail": "https://img.youtube.com/vi/1D3a3F5h3Ro/0.jpg",
+    "order": 1
+  },
+  {
+      "title": "Major Scales",
+      "instrument": "keyboard",
+      "difficulty": "intermediate",
+      "videoUrl": "https://www.youtube.com/embed/8E0TqO1gX9M",
+      "content": "Learn to play the C, G, and F major scales.",
+      "thumbnail": "https://img.youtube.com/vi/8E0TqO1gX9M/0.jpg",
+      "order": 2
+  }
+]

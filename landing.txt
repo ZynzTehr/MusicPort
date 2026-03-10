@@ -1,0 +1,2 @@
+re-record all the GIFs and insert them where they're supposed to go.
+favicon.png has a white background. i do not want any background on the image, remove it, change the format of the image if necessary, like favicon.ico or svg, update index.html.

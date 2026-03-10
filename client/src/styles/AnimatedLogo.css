@@ -1,0 +1,37 @@
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    /* margin-bottom: 1rem; */
+}
+
+.logo-svg {
+    width: 40%;
+    height: auto;
+}
+
+.logo-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 80px;
+    font-weight: 700;
+    fill: none;
+    stroke: #8672ff;
+    stroke-width: 2;
+    stroke-dasharray: 500;
+    stroke-dashoffset: 500;
+    animation: draw 3s ease forwards;
+}
+
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
+        fill: #8672ff; /* Optional: fill after drawing */
+        fill-opacity: 0;
+    }
+}
+
+.logo-svg.filled .logo-text {
+    fill-opacity: 1;
+    transition: fill-opacity 3s ease;
+}

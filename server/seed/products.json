@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Drinking Cup",
+    "brand": "M-P Inc.",
+    "price": 22,
+    "description": "Stylish pure Glass Cup for a Fun Time anyplace, anytime.",
+    "image": "/assets/products/cup.jpeg",
+    "seeded": true
+  },
+  {
+    "name": "Fancy Charger",
+    "brand": "M-P Inc.",
+    "price": 20,
+    "description": "Stylish iphone Charger for a Unique Character like you.",
+    "image": "/assets/products/fancyCharger.jpeg",
+    "seeded": true
+  },
+  {
+    "name": "Makeup Brush Cup",
+    "brand": "M-P Inc.",
+    "price": 19,
+    "description": "Stylish makeup brush holder. Save time to achieve that Perfect Scene Look for the Show!",
+    "image": "/assets/products/makeup.jpeg",
+    "seeded": true
+  },
+  {
+    "name": "Futuristic Glasses",
+    "brand": "M-P Inc.",
+    "price": 200,
+    "description": "Be the talk of the show! Stylish Glasses for the Trendsetter you are.",
+    "image": "/assets/products/newAge.jpeg",
+    "seeded": true
+  },
+  {
+    "name": "Outdoor VR",
+    "brand": "M-P Inc.",
+    "price": 410,
+    "description": "State of the art VR goggles for the outdoorsy type that has too much work on their hands.",
+    "image": "/assets/products/outdoor.jpeg",
+    "seeded": true
+  },
+  {
+    "name": "Hipster Shirt",
+    "brand": "M-P Inc.",
+    "price": 220,
+    "description": "Stylish shirt, Perfect Fit for all the Hipsters of this World.",
+    "image": "/assets/products/shirt.jpeg",
+    "seeded": true
+  }
+]
