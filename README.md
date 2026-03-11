@@ -15,7 +15,7 @@ This platform serves as a definitive showcase of advanced full-stack engineering
 MusicPort represents the culmination of a rigorous, multi-staged engineering journey, evolving from a standard monolithic curriculum assignment into a definitively modern, decoupled full-stack architecture:
 
 1. **Phase 1: The Monolithic Foundation**
-   - The platform originated as a foundational competency project, engineered to prove mastery over Express.js routing infrastructure and structural PostgreSQL schema design logic.
+   - The platform originated as a foundational competency project, engineered to prove mastery over Express.js routing infrastructure. The original project utilized MongoDB and Mongoose for its database architecture.
 2. **Phase 2: The Security Hardening**
    - The architecture was subsequently expanded to meet graduation-thesis level requirements. True cryptographic security was achieved by integrating hardware-intensive `bcrypt` hashing algorithms and strictly managed stateless session mapping. Intricate file-system buffering for dynamic user profile avatars was also engineered entirely from scratch.
 3. **Phase 3: The Definitive Decoupled Architecture**
