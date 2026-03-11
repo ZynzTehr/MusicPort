@@ -1,0 +1,171 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                Int      @id @default(autoincrement())
+  name              String
+  email             String   @unique
+  password          String?
+  googleId          String?  @unique
+  appleId           String?  @unique
+  isAdmin           Boolean  @default(false)
+  lastLogin         DateTime?
+  bio               String?
+  photo             String?
+
+  viewedProducts    UserViewedProduct[]
+  purchasedProducts UserPurchasedProduct[]
+  completedLessons  UserCompletedLesson[]
+  posts             Post[]
+  checkouts         UserCheckout[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Product {
+  id                Int      @id @default(autoincrement())
+  name              String
+  brand             String
+  price             Float
+  description       String
+  image             String
+  sizes             String[]
+  seeded            Boolean  @default(false)
+
+  viewedByUsers     UserViewedProduct[]
+  purchasedByUsers  UserPurchasedProduct[]
+  guestPurchases    GuestPurchasedProduct[]
+  userPurchases     UserCheckoutProduct[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// Join tables for User-Product relationships
+model UserViewedProduct {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+}
+
+model UserPurchasedProduct {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Lesson {
+  id          Int      @id @default(autoincrement())
+  title       String
+  instrument  String
+  difficulty  String
+  videoUrl    String
+  content     String   @default("")
+  thumbnail   String   @default("")
+  order       Int      @default(0)
+
+  completedBy UserCompletedLesson[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UserCompletedLesson {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId  Int
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model Venue {
+  id        Int      @id @default(autoincrement())
+  name      String
+  bands     String[]
+  date      String
+  price     Float
+  address   String
+  city      String
+  state     String
+  zipcode   String
+  latitude  Float?
+  longitude Float?
+  image     String
+  seeded    Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  content   String
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GuestCheckout {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  email               String
+  totalPurchaseAmount Float
+  totalItems          Int
+  checkoutDate        DateTime @default(now())
+
+  purchasedProducts   GuestPurchasedProduct[]
+}
+
+model GuestPurchasedProduct {
+  id              Int           @id @default(autoincrement())
+  guestCheckoutId Int
+  guestCheckout   GuestCheckout @relation(fields: [guestCheckoutId], references: [id], onDelete: Cascade)
+  productId       Int
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name            String?
+  price           Float?
+  quantity        Int?
+  selectedSize    String?
+}
+
+model UserCheckout {
+  id                  Int      @id @default(autoincrement())
+  userId              Int
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                String
+  email               String
+  totalPurchaseAmount Float
+  totalItems          Int
+  checkoutDate        DateTime @default(now())
+
+  purchasedProducts   UserCheckoutProduct[]
+}
+
+model UserCheckoutProduct {
+  id              Int           @id @default(autoincrement())
+  userCheckoutId  Int
+  userCheckout    UserCheckout  @relation(fields: [userCheckoutId], references: [id], onDelete: Cascade)
+  productId       Int
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name            String?
+  price           Float?
+  quantity        Int?
+  selectedSize    String?
+}

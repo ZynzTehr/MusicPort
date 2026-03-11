@@ -1,50 +1,110 @@
 [
   {
-    "name": "Drinking Cup",
-    "brand": "M-P Inc.",
+    "name": "MusicPort Premium Mug",
+    "brand": "MusicPort",
+    "price": 25,
+    "description": "A sleek, modern ceramic coffee mug featuring the neon-blue glassmorphism MusicPort logo.",
+    "image": "/assets/products/musicport_mug.png",
+    "sizes": [],
+    "seeded": true
+  },
+  {
+    "name": "MusicPort Logo T-Shirt",
+    "brand": "MusicPort",
+    "price": 35,
+    "description": "Premium black t-shirt featuring the stylish MusicPort minimalist logo with cyan and magenta accents.",
+    "image": "/assets/products/musicport_shirt.png",
+    "sizes": ["S", "M", "L", "XL", "2XL"],
+    "seeded": true
+  },
+  {
+    "name": "Martin Acoustic Guitar",
+    "brand": "Martin",
+    "price": 1200,
+    "description": "High-end acoustic guitar with rich wood grain. Perfect for studio recording and live performances.",
+    "image": "/assets/products/acoustic_guitar.png",
+    "sizes": [],
+    "seeded": true
+  },
+  {
+    "name": "MusicPort Studio Headphones",
+    "brand": "MusicPort",
+    "price": 199,
+    "description": "Premium over-ear studio headphones with a matte black finish and neon-cyan accents.",
+    "image": "/assets/products/musicport_headphones.png",
+    "sizes": [],
+    "seeded": true
+  },
+  {
+    "name": "Aurora Condenser Microphone",
+    "brand": "Aurora",
+    "price": 299,
+    "description": "Sleek, high-end condenser microphone with a glowing magenta accent ring. Pristine audio capture.",
+    "image": "/assets/products/musicport_microphone.png",
+    "sizes": [],
+    "seeded": true
+  },
+  {
+    "name": "Volta Nova MIDI Synth",
+    "brand": "Volta",
+    "price": 150,
+    "description": "Compact 25-key MIDI keyboard synthesizer with neon-blue and purple illuminated drum pads.",
+    "image": "/assets/products/musicport_synth.png",
+    "sizes": [],
+    "seeded": true
+  },
+  {
+    "name": "Hickory Studio Drumsticks",
+    "brand": "MusicPort",
+    "price": 18,
+    "description": "A sleek, premium pair of wooden drumsticks featuring a subtle neon-cyan MusicPort logo.",
+    "image": "/assets/products/musicport_drumsticks.png",
+    "sizes": [],
+    "seeded": true
+  },
+  {
+    "name": "Cyberpunk Logic Bandana",
+    "brand": "MusicPort",
     "price": 22,
-    "description": "Stylish pure Glass Cup for a Fun Time anyplace, anytime.",
-    "image": "/assets/products/cup.jpeg",
+    "description": "Stylish black fabric bandana featuring a subtle geometric maze pattern and neon-magenta MusicPort logo.",
+    "image": "/assets/products/musicport_bandana.png",
+    "sizes": ["One Size"],
     "seeded": true
   },
   {
-    "name": "Fancy Charger",
-    "brand": "M-P Inc.",
-    "price": 20,
-    "description": "Stylish iphone Charger for a Unique Character like you.",
-    "image": "/assets/products/fancyCharger.jpeg",
+    "name": "Luminous Guitar Picks (3-Pack)",
+    "brand": "MusicPort",
+    "price": 12,
+    "description": "A beautifully arranged set of three matte black guitar picks with an embedded glowing neon-cyan logo.",
+    "image": "/assets/products/musicport_guitar_picks.png",
+    "sizes": [],
     "seeded": true
   },
   {
-    "name": "Makeup Brush Cup",
-    "brand": "M-P Inc.",
-    "price": 19,
-    "description": "Stylish makeup brush holder. Save time to achieve that Perfect Scene Look for the Show!",
-    "image": "/assets/products/makeup.jpeg",
+    "name": "Aura Reference Monitors",
+    "brand": "Aura",
+    "price": 549,
+    "description": "A pair of modern black studio monitor speakers with precise audio imaging and soft magenta glow accents.",
+    "image": "/assets/products/musicport_monitors.png",
+    "sizes": [],
     "seeded": true
   },
   {
-    "name": "Futuristic Glasses",
-    "brand": "M-P Inc.",
-    "price": 200,
-    "description": "Be the talk of the show! Stylish Glasses for the Trendsetter you are.",
-    "image": "/assets/products/newAge.jpeg",
+    "name": "Lumina RGB LED Strip",
+    "brand": "Lumina",
+    "price": 45,
+    "description": "A coiled bundle of premium RGB LED strip lighting, emitting a seamless gradient of neon cyan and magenta.",
+    "image": "/assets/products/musicport_led_strips.png",
+    "sizes": [],
     "seeded": true
   },
   {
-    "name": "Outdoor VR",
-    "brand": "M-P Inc.",
-    "price": 410,
-    "description": "State of the art VR goggles for the outdoorsy type that has too much work on their hands.",
-    "image": "/assets/products/outdoor.jpeg",
-    "seeded": true
-  },
-  {
-    "name": "Hipster Shirt",
-    "brand": "M-P Inc.",
-    "price": 220,
-    "description": "Stylish shirt, Perfect Fit for all the Hipsters of this World.",
-    "image": "/assets/products/shirt.jpeg",
+    "name": "Producers Tech Backpack",
+    "brand": "MusicPort",
+    "price": 110,
+    "description": "High-end, weather-resistant black tech backpack with thick studio gear padding and waterproof zippers.",
+    "image": "/assets/products/musicport_backpack.png",
+    "sizes": [],
     "seeded": true
   }
 ]

@@ -1,31 +1,21 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import { PrismaClient } from '@prisma/client';
 
-dotenv.config();
-
-// Retrieve MongoDB connection URI from environment variables..
-const db: string = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/musicport';
-
-// Connect to MongoDB using the provided connection string..
-mongoose.connect( db );
-
-// Event listener: Successful connection..
-mongoose.connection.on( 'connected', () =>
-{
-    console.log( `Mongoose successfully connected to ${ db }` );
+/**
+ * =========================================
+ * Database Connection Module
+ * =========================================
+ * Architectural Pattern: Singleton Connection Pool
+ * 
+ * Centralized singleton instantiation of the Prisma ORM PostgreSQL Client.
+ * By instantiating this class exactly once and exporting it, we prevent 
+ * the application from exhausting the PostgreSQL max-connection limit 
+ * during heavy horizontal scaling or hot reloads.
+ * 
+ * Automatically broadcasts raw SQL query statements and warnings directly 
+ * to the backend stdout logging stream natively for high-visibility debugging.
+ */
+const prisma = new PrismaClient( {
+    log: [ 'query', 'info', 'warn', 'error' ],
 } );
 
-// Event listener: Connection error handling..
-mongoose.connection.on( 'error', ( err ) =>
-{
-    console.error( `Mongoose connection error: ${ err }` );
-} );
-
-// Event listener: Disconnection handling..
-mongoose.connection.on( 'disconnected', () =>
-{
-    console.warn( 'Mongoose disconnected from MongoDB' );
-} );
-
-// Export mongoose connection instance
-export default mongoose.connection;
+export default prisma;

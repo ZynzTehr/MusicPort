@@ -8,15 +8,28 @@ import { fetchAllProducts } from '../api/products'; // API call to get all produ
 
 interface Product
 {
-  _id: string;
+  id: number;
+  _id?: string;
   image: string;
   name: string;
   brand: string;
   description: string;
   price: number;
+  sizes?: string[];
   [ key: string ]: any;
 }
 
+/**
+ * ShopPage Component
+ * 
+ * Architectural Pattern: Global Product Gallery / Context Distributor.
+ * 
+ * Purpose: This component acts as the digital storefront. It fetches the complete 
+ * active inventory and delegates rendering to individual `<ProductCard>` children.
+ * Crucially, it orchestrates the `CartContext` interaction. Instead of each ProductCard 
+ * connecting to the Context independently, the ShopPage acts as the broker, passing down 
+ * `onAddToCart` as a prop.
+ */
 const ShopPage: React.FC = () =>
 {
   const [ products, setProducts ] = useState<Product[]>( [] ); // Local state for fetched product list..
@@ -24,7 +37,10 @@ const ShopPage: React.FC = () =>
   const addToCart = cartContext?.addToCart;
 
 
-  // When the component mounts, fetch product data from the backend..
+  /**
+   * Triggers an immediate network request upon component initialization mapping the entire
+   * inventory JSON array locally into state memory for fast rendering.
+   */
   useEffect( () =>
   {
     fetchAllProducts().then( res =>
@@ -42,9 +58,8 @@ const ShopPage: React.FC = () =>
         {/* Display each product as a card */ }
         <div className="row">
           { products.map( product => (
-            <div className="col-sm-6 col-md-4 mb-4">
+            <div className="col-sm-6 col-md-4 mb-4" key={ product.id || product._id }>
               <ProductCard
-                key={ product._id } // React key to uniquely identify each item..
                 product={ product } // Product data passed to the card..
                 onAddToCart={ ( product: any ) => addToCart && addToCart( product ) } // Pass the function to add items to cart..
               />

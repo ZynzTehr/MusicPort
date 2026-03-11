@@ -1,10 +1,31 @@
 import { Request, Response } from 'express';
-import Venue from '../models/ShowModel';
+import prisma from '../database/dbConnection';
 
-// Helper to calculate distance between two coordinates (Haversine formula)
+/**
+ * =========================================
+ * Tour Routing & Venue Controller
+ * =========================================
+ * Architectural Pattern: Geolocation Arithmetic & CRUD Management
+ * 
+ * Purpose: Manages the concert tour schedule. Highlights advanced logic 
+ * capabilities by executing raw mathematical Geofencing (The Haversine formula) 
+ * directly against incoming client coordinate arrays to determine physically 
+ * localized shows within a hard 50-mile radius.
+ */
+
+/**
+ * Implements the rigorous mathematical Haversine formula natively determining exact
+ * point-to-point geographic distances factoring the strict curvature of the globe.
+ *
+ * @param lat1 - Numeric latitude vector 1.
+ * @param lon1 - Numeric longitude vector 1.
+ * @param lat2 - Numeric latitude vector 2.
+ * @param lon2 - Numeric longitude vector 2.
+ * @returns - Numeric mile distance.
+ */
 const getDistance = ( lat1: number, lon1: number, lat2: number, lon2: number ) =>
 {
-    const R = 3963; // Radius of the earth in miles
+    const R = 3963;
     const dLat = ( lat2 - lat1 ) * Math.PI / 180;
     const dLon = ( lon2 - lon1 ) * Math.PI / 180;
     const a =
@@ -12,46 +33,51 @@ const getDistance = ( lat1: number, lon1: number, lat2: number, lon2: number ) =
         Math.cos( lat1 * Math.PI / 180 ) * Math.cos( lat2 * Math.PI / 180 ) *
         Math.sin( dLon / 2 ) * Math.sin( dLon / 2 );
     const c = 2 * Math.atan2( Math.sqrt( a ), Math.sqrt( 1 - a ) );
-    const d = R * c; // Distance in miles
-    return d;
+    return R * c;
 };
 
-/* Export controller to send data from server to frontend */
+/**
+ * Retrieves the global aggregate of touring shows dynamically from the database.
+ * Natively supports case-insensitive, partial-match substring filtering spanning city and state matrices.
+ *
+ * @param req - Express request housing geographic parameters.
+ * @param res - Express response outputting the JSON matched matrix.
+ */
 export const getAllShows = async ( req: Request, res: Response ) =>
 {
     try
     {
         const { city, state, q } = req.query;
-        let query: any = {};
+        let where: any = {};
 
         if ( q )
         {
-            // Unified search: matches city OR state
-            query.$or = [
-                { city: { $regex: new RegExp( q as string, 'i' ) } },
-                { state: { $regex: new RegExp( q as string, 'i' ) } }
+            where.OR = [
+                { city: { contains: q as string, mode: 'insensitive' } },
+                { state: { contains: q as string, mode: 'insensitive' } }
             ];
         } else
         {
-            if ( city )
-            {
-                query.city = { $regex: new RegExp( city as string, 'i' ) };
-            }
-            if ( state )
-            {
-                query.state = { $regex: new RegExp( state as string, 'i' ) };
-            }
+            if ( city ) where.city = { contains: city as string, mode: 'insensitive' };
+            if ( state ) where.state = { contains: state as string, mode: 'insensitive' };
         }
 
-        const shows = await Venue.find( query ); // Get shows based on query
-        res.json( shows ); // Respond with JSON array of shows..
+        const shows = await prisma.venue.findMany( { where } );
+        res.json( shows );
     } catch ( err: any )
     {
-        res.status( 500 ).json( { message: err.message } ); // Handle server error..
+        res.status( 500 ).json( { message: err.message } );
     }
 };
 
-/* Export controller to send data from server to frontend */
+/**
+ * Pinpoints active concerts programmatically isolated within a strict 50-mile geographical boundary.
+ * Ingests direct hardware lat/long pings from the client and executes the Haversine calculation against the master schedule.
+ * Can alternatively render shows restricted directly by state-level parameters.
+ *
+ * @param req - Express request mapping explicit hardware lat/lng or abstract state queries.
+ * @param res - Express response outputting locally-verified concert payloads.
+ */
 export const getShowsByLocation = async ( req: Request, res: Response ) =>
 {
     try
@@ -60,12 +86,11 @@ export const getShowsByLocation = async ( req: Request, res: Response ) =>
 
         if ( lat && lng )
         {
-            // Proximity search
             const userLat = parseFloat( lat as string );
             const userLng = parseFloat( lng as string );
-            const maxDist = 50; // default 50 miles radius
+            const maxDist = 50;
 
-            const allShows = await Venue.find( {} );
+            const allShows = await prisma.venue.findMany();
 
             const nearbyShows = allShows.filter( venue =>
             {
@@ -80,74 +105,93 @@ export const getShowsByLocation = async ( req: Request, res: Response ) =>
             return res.json( nearbyShows );
         }
 
-        // Fallback to existing logic if simple state param is passed (e.g. /api/shows/CA)
-        // Note: The route param handling needs to be adjusted in routes.js or here
-        // Currently this function maps to /shows/:state, so req.params.state is expected
         const { state } = req.params;
         if ( state )
         {
-            const shows = await Venue.find( { state: { $regex: new RegExp( state as string, 'i' ) } } );
+            const shows = await prisma.venue.findMany( {
+                where: { state: { contains: state as string, mode: 'insensitive' } }
+            } );
             return res.json( shows );
         }
 
         res.json( [] );
     } catch ( err: any )
     {
-        res.status( 500 ).json( { message: err.message } ); // Handle server error..
+        res.status( 500 ).json( { message: err.message } );
     }
 };
 
-// Create a new show/venue
+/**
+ * Synthesizes a new explicit concert record mapped into the venues database securely.
+ * Automatically casts incoming JSON boundary fields into proper Float precision formatting natively.
+ *
+ * @param req - Express request.
+ * @param res - Express response.
+ */
 export const createShow = async ( req: Request, res: Response ) =>
 {
     try
     {
-        const show = await Venue.create( req.body );
+        const { price, seeded, latitude, longitude, bands, ...rest } = req.body;
+
+        let updateData: any = { ...rest };
+        if ( price !== undefined ) updateData.price = parseFloat( price.toString() );
+        if ( seeded !== undefined ) updateData.seeded = seeded === true || seeded === 'true';
+        if ( latitude !== undefined ) updateData.latitude = parseFloat( latitude.toString() );
+        if ( longitude !== undefined ) updateData.longitude = parseFloat( longitude.toString() );
+
+        // Prism arrays for bands needs parsing if string json
+        if ( Array.isArray( bands ) ) updateData.bands = bands.map( b => ( b.name ? b.name : b ).toString() );
+
+        const show = await prisma.venue.create( { data: updateData } );
         res.status( 201 ).json( show );
     } catch ( error: any )
     {
-        if ( error.name === 'ValidationError' )
-        {
-            return res.status( 400 ).json( { message: 'Validation Error', error: error.message } );
-        }
         res.status( 500 ).json( { message: 'Error creating show', error: error.message } );
     }
 };
 
-// Update a show/venue
+/**
+ * Issues a targeted payload update modifying an explicit show ID in the database natively.
+ * Applies graceful transformations automatically coercing pricing architectures into Floats prior to injection.
+ *
+ * @param req - Express request.
+ * @param res - Express response.
+ */
 export const updateShow = async ( req: Request, res: Response ) =>
 {
     try
     {
-        const { id } = req.params;
-        const show = await Venue.findByIdAndUpdate( id, req.body, { new: true } );
-        if ( !show )
-        {
-            return res.status( 404 ).json( { message: 'Show not found' } );
-        }
+        const id = Number( req.params.id );
+        const { price, seeded, latitude, longitude, bands, ...rest } = req.body;
+
+        let updateData: any = { ...rest };
+        if ( price !== undefined ) updateData.price = parseFloat( price.toString() );
+        if ( seeded !== undefined ) updateData.seeded = seeded === true || seeded === 'true';
+        if ( latitude !== undefined ) updateData.latitude = parseFloat( latitude.toString() );
+        if ( longitude !== undefined ) updateData.longitude = parseFloat( longitude.toString() );
+        if ( Array.isArray( bands ) ) updateData.bands = bands.map( b => ( b.name ? b.name : b ).toString() );
+
+        const show = await prisma.venue.update( { where: { id }, data: updateData } );
         res.status( 200 ).json( show );
     } catch ( error: any )
     {
-        if ( error.name === 'ValidationError' )
-        {
-            return res.status( 400 ).json( { message: 'Validation Error', error: error.message } );
-        }
         res.status( 500 ).json( { message: 'Error updating show', error: error.message } );
     }
 };
 
-// Delete a show/venue
+/**
+ * Modifies the table layout securely deleting a single explicitly referenced concert ID completely.
+ *
+ * @param req - Express request containing the integer identifier block.
+ * @param res - Express response indicating success output.
+ */
 export const deleteShow = async ( req: Request, res: Response ) =>
 {
     try
     {
-        const { id } = req.params;
-        console.log( `Attempting to delete show with ID: ${ id }` );
-        const show = await Venue.findByIdAndDelete( id );
-        if ( !show )
-        {
-            return res.status( 404 ).json( { message: 'Show not found' } );
-        }
+        const id = Number( req.params.id );
+        await prisma.venue.delete( { where: { id } } );
         res.status( 200 ).json( { message: 'Show deleted successfully' } );
     } catch ( error: any )
     {

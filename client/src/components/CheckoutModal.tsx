@@ -1,10 +1,21 @@
-// Import React, hooks, Bootstrap modal, and app context/API..
+// Import core React hooks for state and lifecycle management.
 import React, { useState, useContext, useEffect } from 'react';
+
+// Use React Bootstrap's Modal for an accessible, styled overlay dialog.
 import { Modal } from 'react-bootstrap';
+
+// Import our context providers. This is a critical architectural pattern: 
+// By using Context, we avoid "prop drilling" (passing user/cart data down through 10 layers of components).
 import { AuthContext } from '../context/AuthContext';
-import { userCheckout, guestCheckout } from '../api/checkout';
 import { CartContext } from '../context/CartContext';
 
+// Import our abstracted API calling functions for clean separation of concerns.
+import { userCheckout, guestCheckout } from '../api/checkout';
+
+/**
+ * Interface defining the strict shape of a CartItem.
+ * This ensures type safety when iterating over the cart to calculate totals or format API payloads.
+ */
 interface CartItem
 {
   _id: string;
@@ -13,27 +24,39 @@ interface CartItem
   quantity: number;
 }
 
+/**
+ * Interface defining the Props this Modal expects from its parent component.
+ */
 interface CheckoutModalProps
 {
-  show: boolean;
-  onClose: () => void;
-  cartItems: CartItem[];
+  show: boolean;         // Controls modal visibility.
+  onClose: () => void;   // Callback to parent to trigger the modal closing animation.
+  cartItems: CartItem[]; // The actual list of items the user is attempting to buy.
 }
 
+/**
+ * CheckoutModal Component
+ * 
+ * This component acts as the final step in the e-commerce funnel.
+ * It intelligently handles two completely different workflows natively:
+ * 1. Authenticated Users (can use saved cards, connects purchase to their account history).
+ * 2. Anonymous Guests (one-off purchases without account creation).
+ */
 const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems } ) =>
 {
+  // Destructure the global contexts to grab the current user and the clearCart dispatch function.
   const authContext = useContext( AuthContext );
   const cartContext = useContext( CartContext );
 
-  // Get current user "null if guest"..
+  // Using optional chaining (?.) because theoretically, a context might not be wrapped around this component.
   const user = authContext?.user;
-  // Clear cart after successful checkout..
   const clearCart = cartContext?.clearCart;
 
-  // Track whether the user chooses to use card on file..
+  // --- Internal Component State ---
+  // Tracks if a logged-in user flipped the toggle switch to use an existing saved card.
   const [ useCardOnFile, setUseCardOnFile ] = useState( false );
 
-  // Checkout form state..
+  // Controlled form inputs for the credit card / billing information.
   const [ formData, setFormData ] = useState( {
     name: '',
     email: '',
@@ -42,10 +65,16 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
     cvv: ''
   } );
 
-  // Confirmation or error message after submission..
+  // Stores success or error messages retrieved from the API after submission.
   const [ checkoutMessage, setCheckoutMessage ] = useState( '' );
 
-  // Pre-fill form if the user is logged in..
+  /**
+   * Data Pre-filling Effect
+   * 
+   * As soon as this component mounts (or the 'user' object changes), we check if they are logged in.
+   * If they are, it's a massive UX anti-pattern to make them type their name and email again.
+   * We automatically populate `formData` with their existing profile data.
+   */
   useEffect( () =>
   {
     if ( user )
@@ -54,6 +83,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
         ...prev,
         name: user.name || '',
         email: user.email || '',
+        // If they have a saved card, preload that info into state as well.
         cardNumber: user.cardOnFile ? user.cardInfo?.cardNumber || '' : '',
         expiryDate: user.cardOnFile ? user.cardInfo?.expiryDate || '' : '',
         cvv: user.cardOnFile ? user.cardInfo?.cvv || '' : ''
@@ -61,12 +91,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
     }
   }, [ user ] );
 
-  // Handle checkout form submission..
+  /**
+   * Form Submission Orchestrator
+   * 
+   * This is the vital core of the checkout logic.
+   * 1. It maps frontend cart items into the strict 'productDetails' array expected by the backend schema.
+   * 2. It locally calculates total sums (though a secure backend MUST recalculate this server-side to prevent tampering).
+   * 3. It routes the payload to the correct controller endpoint (User vs Guest).
+   */
   const handleSubmit = async ( event: React.FormEvent ) =>
   {
-    event.preventDefault();
+    event.preventDefault(); // Stop default browser refresh
 
-    // Format the cart details for the backend..
+    // Map over `cartItems` and strip out excess frontend data, sending only what the API explicitly requires.
     const productDetails = cartItems.map( item => ( {
       productId: item._id,
       name: item.name,
@@ -74,17 +111,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
       quantity: item.quantity
     } ) );
 
-    // Calculate totals..
+    // Calculate aggregated metrics for the transaction record.
     const totalPurchaseAmount = cartItems.reduce( ( sum: number, item: CartItem ) => sum + item.price * item.quantity, 0 );
     const totalItems = cartItems.reduce( ( sum: number, item: CartItem ) => sum + item.quantity, 0 );
 
     try
     {
+      // Branching logic: Authenticated hit vs Anonymous hit
       if ( user )
       {
-        // Submit checkout as a registered user..
         await userCheckout( {
-          userId: user._id,
+          userId: user._id, // Critical: Attach the transaction to the user's permanent history.
           name: formData.name,
           email: formData.email,
           productDetails,
@@ -93,22 +130,23 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
         } );
       } else
       {
-        // Submit checkout as a guest..
         await guestCheckout( {
-          name: formData.name,
-          email: formData.email,
+          name: formData.name, // No user ID to link. Transaction floats anonymously in the DB merely for accounting.
+          email: formData.email, 
           productDetails,
           totalPurchaseAmount,
           totalItems
         } );
       }
 
-      if ( clearCart ) clearCart(); // Clear cart after successful checkout..
+      // UX Polish: Upon complete API success, we forcefully wipe the global cart context. 
+      // Navigating away with an un-emptied cart after paying is highly confusing to users.
+      if ( clearCart ) clearCart(); 
       setCheckoutMessage( 'Thank you for your purchase!' );
     } catch ( err )
     {
-      console.error( err );
-      setCheckoutMessage( 'Checkout failed.' );
+      console.error( "Checkout API Exception:", err );
+      setCheckoutMessage( 'Checkout failed. Please try again.' );
     }
   };
 
@@ -119,13 +157,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
       </Modal.Header>
 
       <Modal.Body>
+        {/* State-Driven UI: Hide the checkout form entirely and solely render a status message upon submission. */}
         { checkoutMessage ? (
-          // Show confirmation or error message after checkout..
           <div className="alert alert-info text-center">{ checkoutMessage }</div>
         ) : (
-          // Checkout form
           <form onSubmit={ handleSubmit }>
-            {/* Full Name input */ }
+            
+            {/* 
+              * Full Name input 
+              * We use dynamic conditions. If `useCardOnFile` is true, we lock the input (`readOnly`) 
+              * because we shouldn't let them tamper with the registered billing name tied to that token.
+              */}
             <div className='form-group form-floating mb-2'>
               <input
                 id='name'
@@ -140,7 +182,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
               <label htmlFor='name'>Full Name</label>
             </div>
 
-            {/* Email input */ }
             <div className='form-group form-floating mb-2'>
               <input
                 id='email'
@@ -154,7 +195,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
               <label htmlFor='email'>Email</label>
             </div>
 
-            {/* Optional checkbox to use saved card info if user has one */ }
+            {/* 
+              * Saved Payment Toggle
+              * This is an exclusive feature for logged-in users who have opted to store payment credentials.
+              * We only render this div block if `user` AND `user.cardOnFile` both evaluate truthy.
+              */}
             { user && user.cardOnFile && (
               <div className="form-check mb-3">
                 <input
@@ -170,10 +215,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
               </div>
             ) }
 
-            {/* Show card input fields only if user is not using saved card */ }
+            {/* 
+              * Conditional Rendering for Payment Inputs
+              * By wrapping the Card/Exp/CVV fields in `{!useCardOnFile && (...)}`, we literally delete them 
+              * from the DOM if the user toggled the saved card feature. This reduces visual clutter and prevents 
+              * accidental modifications.
+              */}
             { !useCardOnFile && (
               <>
-                {/* Card Number input */ }
                 <div className='form-group form-floating mb-2'>
                   <input
                     id='card'
@@ -187,7 +236,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
                   <label htmlFor='card'>Card Number</label>
                 </div>
 
-                {/* Expiration Date input */ }
                 <div className='form-group form-floating mb-2'>
                   <input
                     id='exp'
@@ -201,7 +249,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
                   <label htmlFor='exp'>Expiration Date (MM/YY)</label>
                 </div>
 
-                {/* CVV input */ }
                 <div className='form-group form-floating mb-2'>
                   <input
                     id='cvv'
@@ -217,7 +264,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ( { show, onClose, cartItems
               </>
             ) }
 
-            {/* Submit Button */ }
             <button className="btn btn-dark w-100 rounded-pill" type="submit">Confirm Payment</button>
           </form>
         ) }

@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Modal, Button, Form, Table, Spinner, Image, Badge } from 'react-bootstrap';
 
+/**
+ * TypeScript Interface: Lesson
+ * 
+ * Strict typing for the properties required by the MongoDB `Lesson` schema.
+ * Note the utilization of Literal Types (e.g., `'guitar' | 'bass'`) instead of generic `string`.
+ * This prevents typos at compile-time when assigning values to these specific dropdowns.
+ */
 interface Lesson
 {
     _id: string;
@@ -14,14 +21,32 @@ interface Lesson
     order: number;
 }
 
+/**
+ * AdminLessonsPage Component
+ * 
+ * Architectural Pattern: Complex CRUD (Create, Read, Update, Delete) Dashboard.
+ * 
+ * Purpose: This is a heavy "Smart Component". It manages massive local state for a data grid,
+ * controls the visibility of a multi-purpose modal (used for BOTH creating and editing), 
+ * and handles the complex form-binding logic required to keep inputs synced before API dispatch.
+ */
 const AdminLessonsPage: React.FC = () =>
 {
+    // Master Data State
     const [ lessons, setLessons ] = useState<Lesson[]>( [] );
     const [ loading, setLoading ] = useState( true );
+    
+    // UI Modal State
     const [ showModal, setShowModal ] = useState( false );
+    
+    /**
+     * Contextual State: Switchboard Variable
+     * If `editingLesson` is `null`, the Modal operates in "Create Mode".
+     * If it holds a `Lesson` object, the Modal switches to "Edit/Update Mode".
+     */
     const [ editingLesson, setEditingLesson ] = useState<Lesson | null>( null );
 
-    // Form state
+    // Form Binding State: This single object tracks every input field simultaneously.
     const [ formData, setFormData ] = useState( {
         title: '',
         instrument: 'guitar',
@@ -32,6 +57,7 @@ const AdminLessonsPage: React.FC = () =>
         order: 0
     } );
 
+    // Trigger initial data load.
     useEffect( () =>
     {
         fetchLessons();
@@ -134,8 +160,14 @@ const AdminLessonsPage: React.FC = () =>
         }
     };
 
+    // Guard Clause: Prevent UI rendering until the initial payload arrives.
     if ( loading ) return <div className="text-center p-5"><Spinner animation="border" /></div>;
 
+    /**
+     * UI Helper: getDifficultyBadge
+     * Analyzes the pure data string and maps it to specific Bootstrap UX elements.
+     * Keeps the JSX cleanly separated from the styling logic.
+     */
     const getDifficultyBadge = ( difficulty: string ) =>
     {
         switch ( difficulty )

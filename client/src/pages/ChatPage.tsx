@@ -4,6 +4,11 @@ import { fetchAllPosts } from '../api/posts';
 import PostInput from '../components/PostInput';
 import PostList from '../components/PostList';
 
+/**
+ * TypeScript Interface: Post
+ * Defines the strict shape of a chat message. 
+ * `author` is heavily populated with sub-document UI properties (name/photo).
+ */
 interface Post
 {
     _id: string;
@@ -16,12 +21,22 @@ interface Post
     createdAt: string;
 }
 
+/**
+ * ChatPage Component
+ * 
+ * Architectural Pattern: Top-Level Smart Page / State Manager.
+ * 
+ * Purpose: This acts as the "Brain" for the community forum. It holds the Master State 
+ * array (`posts`) and delegates subsets of that state down to "Dumb" children components 
+ * (`<PostList>` and `<PostInput>`) via Props.
+ */
 const ChatPage: React.FC = () =>
 {
+    // The Master Source of Truth for all active chat threads on the screen.
     const [ posts, setPosts ] = useState<Post[]>( [] );
     const [ loading, setLoading ] = useState( true );
 
-    // Fetch all posts on component mount
+    // Initialization: Fetch all posts immediately on page load.
     useEffect( () =>
     {
         fetchPosts();
@@ -41,9 +56,17 @@ const ChatPage: React.FC = () =>
         }
     };
 
+    /**
+     * Action Callback: handlePostCreated
+     * 
+     * Pattern: "Data-Down, Actions-Up" (Inverse Data Flow)
+     * When `<PostInput>` successfully hits the API, it calls this function (passed as a prop).
+     * We dynamically inject the newly returned Post object into the *front* of our local array,
+     * instantly updating the UI without requiring an expensive secondary network fetch.
+     */
     const handlePostCreated = ( newPost: Post ) =>
     {
-        setPosts( [ newPost, ...posts ] );
+        setPosts( [ newPost, ...posts ] ); // The Spread Operator (...) preserves existing data.
     };
 
     const handlePostUpdated = ( updatedPost: Post ) =>

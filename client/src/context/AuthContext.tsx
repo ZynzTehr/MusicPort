@@ -30,16 +30,35 @@ interface AuthContextType
 
 export const AuthContext = createContext<AuthContextType | undefined>( undefined );
 
-// AuthProvider component that wraps the app and shares auth state globally..
+/**
+ * AuthProvider Component
+ * 
+ * Architectural Pattern: Global State Management / Context Provider.
+ * 
+ * Purpose: Acts as the absolute source of truth for the user's authentication session 
+ * throughout the entire React application tree. It centralizes all API interactions 
+ * (Login, Signup, Profile Updates) and manages the corresponding browser `sessionStorage` 
+ * persistence to ensure the user stays logged in across hard refreshes.
+ */
+/**
+ * Primary Global Authentication wrap component enclosing the complete DOM hierarchy in React Context.
+ * Actively binds and exposes user sessions, persistence bindings into SessionStorage, and authentication callbacks.
+ *
+ * @param children - Any underlying nested React virtual DOM components globally possessing context bindings.
+ */
 export const AuthProvider: React.FC<{ children: ReactNode; }> = ( { children } ) =>
 {
-  // Store the logged-in user (null means no user signed in)..
+  // Master State: Holds the active user credential object (null = guest).
   const [ user, setUser ] = useState<User | null>( null );
 
-  // Store any auth-related messages (success/failure alerts)..
+  // UX State: Centralized conduit for broadcasting login/failure messages to UI components.
   const [ authMessage, setAuthMessage ] = useState( '' );
 
-  // On first load, check localStorage for a previously logged-in user..
+  /**
+   * Lifecycle Mount Initialization
+   * Instantly checks `sessionStorage` before the DOM fully paints.
+   * If a serialized user object exists, it parses and hydrates the global `user` state.
+   */
   useEffect( () =>
   {
     const stored = sessionStorage.getItem( 'user' );
@@ -49,6 +68,14 @@ export const AuthProvider: React.FC<{ children: ReactNode; }> = ( { children } )
     }
   }, [] );
 
+  /**
+   * Pushes a multipart user creation payload natively to the Express endpoints.
+   * If strictly successful, mounts the localized JWT implicitly into SessionStorage securing
+   * instantaneous authentication tracking.
+   *
+   * @param formData Object capturing explicit name, email, credentials, and optional physical file images.
+   * @returns Resolves a strict boolean confirming payload database validity.
+   */
   const signUp = async ( formData: any ) =>
   {
     try
@@ -69,6 +96,14 @@ export const AuthProvider: React.FC<{ children: ReactNode; }> = ( { children } )
     }
   };
 
+  /**
+   * Securely triggers login authentication ping against the backend structure matching unique combinations explicitly.
+   * Yields a local UI string confirming verification natively.
+   *
+   * @param identifier Accepts either string literal email formats or basic character usernames natively.
+   * @param password Strict plaintext unhashed verification.
+   * @returns Boolean verification status.
+   */
   const signIn = async ( identifier: string, password: string ) =>
   {
     try
@@ -107,6 +142,13 @@ export const AuthProvider: React.FC<{ children: ReactNode; }> = ( { children } )
   //   }
   // };
 
+  /**
+   * Patches modifications manually across live object credentials utilizing dynamic multipart Form uploads.
+   * Appends absolute identifiers internally assuring localized patches process reliably.
+   *
+   * @param formData Mutable string changes.
+   * @returns Boolean mapping completion status.
+   */
   const updateProfile = async ( formData: any ) =>
   {
     try
@@ -131,6 +173,10 @@ export const AuthProvider: React.FC<{ children: ReactNode; }> = ( { children } )
   };
 
 
+  /**
+   * Instantaneously strips User profile payloads completely out from Local SessionStorage
+   * and dismounts global context references wiping active dashboard views.
+   */
   const signOut = () =>
   {
     setUser( null ); // Clear state
@@ -138,6 +184,10 @@ export const AuthProvider: React.FC<{ children: ReactNode; }> = ( { children } )
     setAuthMessage( '' );
   };
 
+  /**
+   * Permanently flags Express to execute table purges recursively destroying user bounds.
+   * Overrides user UI rendering null gracefully.
+   */
   const deleteAccount = async () =>
   {
     try

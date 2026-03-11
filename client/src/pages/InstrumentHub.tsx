@@ -4,6 +4,11 @@ import { useParams, Link } from 'react-router-dom';
 import { fetchAllLessons } from '../api/lessons';
 import { AuthContext } from '../context/AuthContext';
 
+/**
+ * TypeScript Interface: Lesson
+ * Defines the strict requirements for a lesson object payload.
+ * The `order` property allows for chronological mapping regardless of creation date.
+ */
 interface Lesson
 {
     _id: string;
@@ -12,6 +17,17 @@ interface Lesson
     title: string;
     difficulty: 'beginner' | 'intermediate' | 'advanced';
 }
+
+/**
+ * InstrumentHub Component
+ * 
+ * Architectural Pattern: Dynamic Data Router / Categorization Engine.
+ * 
+ * Purpose: This component acts as a dynamic hub for specific instruments 
+ * (e.g., pulling from `/lessons/guitar` vs `/lessons/drums`). 
+ * It reads the URL parameters, requests the associated curriculum, and dynamically 
+ * groups them into Beginner/Intermediate/Advanced sub-categories.
+ */
 
 const InstrumentHub: React.FC = () =>
 {
@@ -39,13 +55,23 @@ const InstrumentHub: React.FC = () =>
         loadLessons();
     }, [ instrument ] );
 
-    // Group lessons by difficulty
+    /**
+     * Data Mapping: Dynamic Grouping
+     * Instead of 3 separate API calls (getBeginner, getIntermediate, getAdvanced),
+     * we retrieve the entire chunk once and utilize a `Record<string, Lesson[]>` to 
+     * map them into memory objects dynamically. Fast client-side mapping saves network load.
+     */
     const groupedLessons: Record<string, Lesson[]> = {
         beginner: lessons.filter( l => l.difficulty === 'beginner' ),
         intermediate: lessons.filter( l => l.difficulty === 'intermediate' ),
         advanced: lessons.filter( l => l.difficulty === 'advanced' )
     };
 
+    /**
+     * Global User Context Consumption
+     * Confirms if the logged-in User's database `completedLessons` array includes 
+     * this specific `lessonId`. We use `some()` for iteration and force string comparison.
+     */
     const isCompleted = ( lessonId: string ) =>
     {
         return user?.completedLessons?.some( ( id: any ) => id.toString() === lessonId );

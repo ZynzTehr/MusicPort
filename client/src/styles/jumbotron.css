@@ -1,22 +1,42 @@
-/* Jumbotron section: large full-height hero banner */
+/* 
+  =========================================
+  Jumbotron CSS Architecture
+  =========================================
+  Pattern: CSS Flexbox Hero Overlay
+  Purpose: Governs the massive, immersive landing banner. 
+*/
+
+/* 
+  Hero Container (`.jumbotron`)
+  Utilizes Flexbox to calculate strict dead-center alignment of child elements.
+*/
 .jumbotron {
-  height: 80vh; /* Takes up 80% of the viewport height */
+  height: 80vh; /* Takes up exactly 80% of the user's vertical monitor space initially */
   background-position: center; /* Center the background image */
-  background-size: cover; /* Scale background to fill area without distortion */
-  background-repeat: no-repeat; /* Set background to one instance, otherwise it repeats multiple times accross container */
-  border-radius: 8px; /* Prevent background from repeating */
-  display: flex; /* Enable flex layout */
+  background-size: cover; /* Scale background up or down symmetrically to fill area without stretch distortion */
+  background-repeat: no-repeat;
+  border-radius: 8px;
+  display: flex; /* Engage Flexbox calculation engine */
   align-items: center; /* Vertically center content */
   justify-content: center; /* Horizontally center content */
-  position: relative; /* Allows for layered positioning inside (e.g. overlays) */
-  color: white; /* Default text color for content inside the jumbotron */
+  position: relative; /* Context Anchor for absolutely positioned inner nodes or effects */
+  color: white;
 }
 
-/* Overlay container inside the jumbotron */
+/* 
+  Text Legibility Overlay
+  Direct text placed over complex photographic backgrounds relies entirely on an 
+  opacity filter to prevent the typography from disappearing into the noisy image details.
+*/
 .jumbotron-overlay {
-  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black overlay for readability */
-  padding: 2rem; /* Internal spacing */
-  border-radius: 1rem; /* Rounded corners for modern UI */
-  max-width: 700px; /* Limit content width for better readability */
-  text-align: center; /* Center all text inside the overlay */
+  background: rgba(10, 10, 20, 0.4); /* Extremely sheer, dark tint */
+  backdrop-filter: blur(12px); /* High-end Apple frosted glass blur */
+  -webkit-backdrop-filter: blur(12px); /* Safari support */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Very thin, glowing inner-edge */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); /* Deep grounding shadow */
+  padding: 3rem 2rem;
+  border-radius: 1.5rem; /* Much softer, modern rounded corners */
+  max-width: 750px; 
+  text-align: center; 
+  transition: all 0.4s ease; /* Smooth transition for any future hover states */
 }

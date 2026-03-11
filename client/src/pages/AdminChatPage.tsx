@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button, Table, Spinner, Image, Badge } from 'react-bootstrap';
 
+/**
+ * TypeScript Interface: Post (Chat Message)
+ * 
+ * Mirrors the identical interface in `PostItem.tsx`. In a massive architecture, 
+ * this should be extracted into a `shared/types.ts` file to maintain a single source of truth.
+ * Note the populated `author` sub-document needed for rendering avatars.
+ */
 interface Post
 {
     _id: string;
@@ -16,16 +23,31 @@ interface Post
     comments?: any[];
 }
 
+/**
+ * AdminChatPage Component
+ * 
+ * Architectural Pattern: Protected Data Table / CRUD Manager.
+ * Purpose: Allows an authenticated Admin to view all global community posts and forcefully 
+ * delete toxic/spam messages.
+ */
 const AdminChatPage: React.FC = () =>
 {
+    // Local State: Data payload and UX progress tracking.
     const [ posts, setPosts ] = useState<Post[]>( [] );
     const [ loading, setLoading ] = useState( true );
 
+    // Initialization: Fetch the massive data payload immediately on navigation.
     useEffect( () =>
     {
         fetchPosts();
     }, [] );
 
+    /**
+     * Data Retrieval Layer
+     * Fetches all posts from the REST API. Crucially, it attaches the JWT.
+     * While fetching *all* posts might be public, an Admin dashboard ensures 
+     * they see the data exactly as the server calculates it for them.
+     */
     const fetchPosts = async () =>
     {
         try

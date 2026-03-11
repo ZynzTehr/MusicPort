@@ -1,19 +1,35 @@
-// Import necessary React hooks and AuthContext..
+// Import necessary React hooks and global Context.
 import React, { useState, useContext, useEffect, ChangeEvent, FormEvent } from 'react';
 import { AuthContext, User } from '../context/AuthContext';
 
-// Define the base API URL using the environment variable..
+/**
+ * Environment & Network Configuration
+ * Points to the backend Express server. Dynamically adapts via Vite environment variables.
+ */
 const API = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace( '/api', '' ) : 'http://localhost:4000';
 
-
+/**
+ * TypeScript Interface: UserAuthProps
+ * 
+ * Defines the configuration options for this multi-purpose modal.
+ * `mode` acts as a Discriminated Union, strictly forcing the component to render 
+ * its internal UI as either a Login, Registration, or Profile Editing form.
+ */
 interface UserAuthProps
 {
   onClose: () => void;
-  mode?: 'auth' | 'join' | 'edit';
-  user?: User | null;
+  mode?: 'auth' | 'join' | 'edit'; // Strict type-locking.
+  user?: User | null;              // Passed down *only* if the user is actively logged in.
 }
 
-// UserAuth handles signup, login, edit profile, and delete account
+/**
+ * UserAuth Component
+ * 
+ * Architectural Pattern: "God" Form Component / Context Consumer.
+ * This is arguably the most complex form in the application. Instead of building three 
+ * separate forms (Login, Signup, EditProfile), we built one massive state engine that 
+ * dynamically switches its UI and API targets based on the `mode` prop.
+ */
 const UserAuth: React.FC<UserAuthProps> = ( { onClose, mode = 'auth', user = null } ) =>
 {
   const authContext = useContext( AuthContext );
@@ -42,15 +58,20 @@ const UserAuth: React.FC<UserAuthProps> = ( { onClose, mode = 'auth', user = nul
     photo: user?.photo || '',
     identifier: ''
   } );
-  ``;
-  // console.log('photo:', formData.photo)
 
-  // Initialize form field for file upload based on the mode and whether a user object was passed in..
+  const [showPassword, setShowPassword] = useState(false);
+
+  /**
+   * Complex State: File Attachments
+   * The browser's `<input type="file">` does not play nicely with standard controlled 
+   * text inputs. We must isolate the physical `File` object in its own state node 
+   * so we can inject it into a `FormData` payload during submission.
+   */
   const [ selectedFile, setSelectedFile ] = useState<File | null>( null );
 
   const handleFileChange = ( event: ChangeEvent<HTMLInputElement> ) =>
   {
-    // Access the selected file from the event object
+    // Deep access: Navigate the Synthetic Event to extract the physical file blob.
     if ( event.target.files && event.target.files.length > 0 )
     {
       setSelectedFile( event.target.files[ 0 ] );
@@ -85,9 +106,22 @@ const UserAuth: React.FC<UserAuthProps> = ( { onClose, mode = 'auth', user = nul
       identifier: formData.identifier.trim()
     };
 
-    // Route the request to the appropriate context method..
+    // The strict security policy regex (Must contain Upper, Lower, Num, Special, and be 8+ chars).
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    /**
+     * Architectural Branching:
+     * We analyze `isEditMode` and `mode` to decide which Context method to fire.
+     * Note the usage of `new FormData()` instead of a standard JSON object.
+     * This is an absolute requirement for transmitting `multipart/form-data` (images) to the Node server.
+     */
     if ( isEditMode )
     {
+      if ( trimmedFormData.password && !passwordRegex.test( trimmedFormData.password ) )
+      {
+        setAuthMessage( 'Password must be at least 8 chars, 1 uppercase, 1 lowercase, 1 number, and 1 special char.' );
+        return;
+      }
 
       const userData = new FormData();
       userData.append( 'name', trimmedFormData.name ); // The key must match your backend parser
@@ -99,6 +133,11 @@ const UserAuth: React.FC<UserAuthProps> = ( { onClose, mode = 'auth', user = nul
       success = await updateProfile( userData ); // Update profile..
     } else if ( mode === 'join' )
     {
+      if ( !passwordRegex.test( trimmedFormData.password ) )
+      {
+        setAuthMessage( 'Password must be at least 8 chars, 1 uppercase, 1 lowercase, 1 number, and 1 special char.' );
+        return;
+      }
 
       const userData = new FormData();
       userData.append( 'name', trimmedFormData.name ); // The key must match your backend parser
@@ -144,7 +183,7 @@ const UserAuth: React.FC<UserAuthProps> = ( { onClose, mode = 'auth', user = nul
       { isEditMode ?
         <div className='d-flex justify-content-center'>
           <figure>
-            <img id='user' className='m-0 img-thumbnail rounded-circle' src={ `${ API }/userProfileImgs/${ formData.photo }` } alt={ `${ formData.name }'s profile photo` } style= { { width: '150px', height: '150px', objectFit: 'cover' } } />
+            <img id='user' className='m-0 img-thumbnail rounded-circle' src={ `${ API }/userProfileImgs/${ formData.photo }` } alt={ `${ formData.name }'s profile photo` } style={ { width: '150px', height: '150px', objectFit: 'cover' } } />
             {/* <img id='user' className='m-0 img-thumbnail' src={`../assets/uploads/${formData.photo}`} alt={`${formData.name}'s profile photo`}></img> */ }
           </figure>
           {/* <figcaption className='mx-auto'>{formData.bio}</figcaption> */ }
@@ -210,18 +249,23 @@ const UserAuth: React.FC<UserAuthProps> = ( { onClose, mode = 'auth', user = nul
           </>
         ) }
 
-        {/* Password field is always shown */ }
-
-        <div className='form-group form-floating mb-3'>
+        {/* Password field is always shown */}
+        <div className='form-group form-floating mb-3 position-relative'>
           <input
             id='password'
-            type='password'
+            type={showPassword ? 'text' : 'password'}
             className='form-control'
             placeholder={ isEditMode ? 'New Password (optional)' : 'Password' }
             value={ formData.password }
             onChange={ ( event ) => setFormData( { ...formData, password: event.target.value } ) }
+            style={{ paddingRight: '45px' }} // Prevent password dots from hitting the icon
           />
           <label htmlFor="password">{ isEditMode ? 'New Password "optional"' : 'Password' }</label>
+          <i
+            className={`bi ${showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'} position-absolute`}
+            style={{ right: '15px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#666', zIndex: 10, fontSize: '1.2rem' }}
+            onClick={() => setShowPassword(!showPassword)}
+          ></i>
         </div>
 
         {/* Bio textarea only shown in join or edit modes */ }

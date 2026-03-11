@@ -5,18 +5,23 @@ import { createJWT } from '../utils/jwt';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Create a new router instance..
+/**
+ * =========================================
+ * Centralized API Router
+ * =========================================
+ * Architectural Pattern: Express Router / Endpoint Registry
+ * Purpose: Aggregates all incoming HTTP traffic directed at `/api/*` and explicitly
+ * maps URLs to their respective specialized controller logic functions.
+ */
 const router = express.Router();
 
-// Import auth middleware to protect routes..
-import auth from '../utils/auth';
+// --- Security & Utility Middleware ---
+import auth from '../utils/auth'; // JWT Validation Pipeline.
+import adminAuth from '../middleware/adminAuth'; // Role-Based Access Control (RBAC) Guard.
+import uploadImg from '../utils/userImgMiddleware'; // Multipart Form/Image Parsing (Multer).
 
-// Import userImgMiddleware for handling image uploads..
-import uploadImg from '../utils/userImgMiddleware';
-
-// Import controller functions that handle the logic..
+// --- Controller Logic Injections ---
 import { signup, login, updateProfile, deleteUser, getUserById, getAllUsers } from '../controllers/userController';
-import adminAuth from '../middleware/adminAuth';
 import
 {
   getAllProducts, getFeaturedProducts, getProductById,
@@ -34,7 +39,14 @@ import
 } from '../controllers/lessonController';
 
 
-// Admin Route: Get All Users
+// ==========================================
+// AUTHENTICATION & USER MANAGEMENT ROUTES
+// ==========================================
+
+/**
+ * SECURE: Retrieves a complete list of registered platform users.
+ * Requires both a valid user JWT and an active Administrator boolean flag.
+ */
 router.get( '/users', auth, adminAuth, getAllUsers );
 
 
@@ -45,10 +57,16 @@ import { userCheckout, guestCheckout } from '../controllers/checkoutController';
 import { getAllPosts, createPost, updatePost, deletePost } from '../controllers/postController';
 
 
-// Route to create a new user "Sign Up"..
+/**
+ * PUBLIC: Signs up a brand new user locally and provisions a JWT.
+ * Parses multipart form data natively to extract local profile avatars.
+ */
 router.post( '/users/signup', uploadImg.single( 'photo' ), signup );
 
-// Route to log in an existing user..
+/**
+ * PUBLIC: Authenticates an existing local user via Passport.
+ * Returns the securely signed JWT session string and masked user object.
+ */
 router.post( '/users/login', ( req, res, next ) =>
 {
   passport.authenticate( 'local', { session: false }, ( err: any, user: any, info: any ) =>
@@ -78,88 +96,121 @@ router.post( '/auth/apple/callback', passport.authenticate( 'apple', { session: 
   res.redirect( `${ process.env.ORIGIN }/auth/success?token=${ token }` );
 } );
 
-// Route to update a user's profile "requires user ID and updated data"
+/**
+ * SECURE: Patches an existing user's profile metadata.
+ * Includes Multer injection for image blob replacements.
+ */
 router.put( '/users/update', uploadImg.single( 'photo' ), updateProfile );
+
+/**
+ * SECURE: Permanently drops a user ID based on matching credentials.
+ */
 router.delete( '/users/:userId', auth, deleteUser );
 
 
 // Route to get a user by their ID..
 router.get( '/users/:userId', getUserById );
 
-// Route to get all shows available to display to user..
+// ==========================================
+// CONCERT & VENUE AGGREGATION ROUTES
+// ==========================================
+
+/**
+ * PUBLIC: Full spectrum pull of all active venue shows directly out of the database array.
+ */
 router.get( '/shows', getAllShows );
 
-// Route to get all shows available to display to user..
+/**
+ * PUBLIC: Filtered Pull based on explicit State strings (e.g., 'NY', 'CA').
+ */
 router.get( '/shows/:state', getShowsByLocation );
 
-// --- Admin Show Routes ---
+/**
+ * SECURE ADMIN PORTAL: CRUD operations explicitly restricted behind JWT and RBAC barriers.
+ * Governs the actual creation and cancellation of tour dates dynamically.
+ */
 router.post( '/shows', auth, adminAuth, createShow );
 router.put( '/shows/:id', auth, adminAuth, updateShow );
 router.delete( '/shows/:id', auth, adminAuth, deleteShow );
 
 
-/* Route: GET /api/products -> Fetches all products in the
-  database. Controller retrieves all products from database to
-  display to user at the Shop Page */
+// ==========================================
+// STOREFRONT & E-COMMERCE CHECKOUT ROUTES
+// ==========================================
+
+/**
+ * PUBLIC: Retrieves the entire catalog of purchasable active database products.
+ */
 router.get( '/products', getAllProducts );
 
-/* Route: GET /api/products/featured -> Fetches a limited set of
- "featured" i.e "top 3". Controller retrieves relevant products from
- database to display at the featured section of the Home Page */
+/**
+ * PUBLIC: Fetches a hard-limited top 6 subset of products for the homepage UI carousel.
+ */
 router.get( '/products/featured', getFeaturedProducts );
 
-/* Route: GET /api/products/:id -> Fetches a specific product by
-  its ID. Controller gets Product details from database to send to
-  frontend for the checkout cart in this application */
-/* Route: GET /api/products/:id -> Fetches a specific product by
-  its ID. Controller gets Product details from database to send to
-  frontend for the checkout cart in this application */
+/**
+ * PUBLIC: Yields the explicit metadata of a single product ID for checkout cart referencing.
+ */
 router.get( '/products/:id', getProductById );
 
-// --- Admin Product Routes ---
+// --- Administrator Protected Store CRUD ---
 router.post( '/products', auth, adminAuth, createProduct );
 router.put( '/products/:id', auth, adminAuth, updateProduct );
 router.delete( '/products/:id', auth, adminAuth, deleteProduct );
 
-
-/* Route: POST /api/checkout/user -> Handles checkout for signed-in
-  users. Controller adds products to the user's purchase history */
+/**
+ * SECURE: Commits a parsed purchase history directly into the verified user's database footprint.
+ */
 router.post( '/checkout/user', auth, userCheckout );
 
-/* Route: POST /api/checkout/guest -> Handles checkout for guest users not
-  signed in. Controller creates a new guest checkout record */
+/**
+ * PUBLIC: Orchestrates a localized purchase session for an anonymous un-authenticated guest string.
+ */
 router.post( '/checkout/guest', guestCheckout );
 
-// --- Chatroom Routes --- //
+// ==========================================
+// COMMUNITY FORUM (CHAT) ROUTES
+// ==========================================
 
-// Route to get all posts..
+/**
+ * PUBLIC: Pulls the aggregate list of community chat broadcasts.
+ */
 router.get( '/posts', getAllPosts );
 
-// Route to create a new post..
-// Protected: Only logged-in users can post
+/**
+ * SECURE: Allows any verified user holding a valid JWT to broadcast into the public feed.
+ */
 router.post( '/posts', auth, createPost );
 
-// Route to update a post..
-// Protected: Only the author can update their post
+/**
+ * SECURE (Author Gating): Express matches the JWT signature explicitly against the Post author ID internally.
+ */
 router.put( '/posts/:id', auth, updatePost );
-
-// Route to delete a post..
-// Protected: Only the author can delete their post
 router.delete( '/posts/:id', auth, deletePost );
 
-// --- Lesson Routes --- //
+// ==========================================
+// EDUCATIONAL HUD (LESSONS) ROUTES
+// ==========================================
 
-// Route to get all lessons (supports filtering by ?instrument=guitar&difficulty=beginner)
+/**
+ * PUBLIC: Query parameter supported retrieval filtering (e.g., `?instrument=guitar&difficulty=beginner`).
+ */
 router.get( '/lessons', getAllLessons );
 
-// Route to get a specific lesson
+/**
+ * PUBLIC: Single detail fetch mechanism.
+ */
 router.get( '/lessons/:id', getLessonById );
 
-// Route to mark a lesson as complete (Protected)
-// Route to mark a lesson as complete (Protected)
+/**
+ * SECURE: Patches the authenticated User's document array with the successfully completed lesson ID.
+ */
 router.post( '/users/lessons/:id', auth, markLessonComplete );
 
-// --- Admin Lesson Routes ---
+/**
+ * SECURE ADMIN PORTAL: Curriculum Management. 
+ * Allows administration to dynamically upload or modify lesson structures blocking standard users.
+ */
 router.post( '/lessons', auth, adminAuth, createLesson );
 router.put( '/lessons/:id', auth, adminAuth, updateLesson );
 router.delete( '/lessons/:id', auth, adminAuth, deleteLesson );

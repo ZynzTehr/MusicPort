@@ -20,27 +20,56 @@ interface CartContextType
   clearCart: () => void;
 }
 
-// Create a context for the cart..
+// Create an empty Context shell typed against the interface.
 export const CartContext = createContext<CartContextType | undefined>( undefined );
 
-// Create a provider component to manage and share cart state across the app..
+/**
+ * CartProvider Component
+ * 
+ * Architectural Pattern: Ephemeral State Synchronization / Context Provider.
+ * 
+ * Purpose: Manages the active shopping cart payload entirely within the client's memory.
+ * By hooking directly into the browser's persistent `localStorage`, this Context ensures 
+ * that a user's unpurchased cart survives hard page reloads and tab closures without 
+ * requiring expensive, constant backend syncing until the actual checkout phase.
+ */
+/**
+ * Global component providing explicit Cart state management exposing localized arrays.
+ * Handles exact sync between live shopping sessions and the persistent browser LocalStorage instance globally.
+ *
+ * @param children - Any underlying nested React DOM elements.
+ */
 export const CartProvider: React.FC<{ children: ReactNode; }> = ( { children } ) =>
 {
-  // State to hold cart items..
-  // Initialize from localStorage if available, otherwise an empty array..
+  /**
+   * State Initialization with Lazy Evaluation.
+   * Reading `localStorage` is a synchronous, blocking operation. By passing an anonymous 
+   * function to `useState`, React guarantees this expensive read only executes exactly 
+   * once during the initial mount phase, preventing UI stutter on subsequent re-renders.
+   */
   const [ cartItems, setCartItems ] = useState<CartItem[]>( () =>
   {
     const saved = localStorage.getItem( 'cart' );
     return saved ? JSON.parse( saved ) : [];
   } );
 
-  // Save updated cart items to localStorage whenever cartItems state changes..
+  /**
+   * State Persistence Sync
+   * A classic React pattern. Whenever the master `cartItems` array is mutated (added/removed),
+   * this observer fires and blindly overwrites the stringified `localStorage` vault matching it.
+   */
   useEffect( () =>
   {
     localStorage.setItem( 'cart', JSON.stringify( cartItems ) );
   }, [ cartItems ] );
 
   // Function to add a product to the cart..
+  /**
+   * Appends an active product strictly into the Cart Array block natively.
+   * Modifies existing instance counts if duplicate ID payloads execute simultaneously avoiding duplicate mappings.
+   *
+   * @param product Incoming standardized product object metadata.
+   */
   const addToCart = ( product: any ) =>
   {
     setCartItems( prev =>
@@ -63,13 +92,20 @@ export const CartProvider: React.FC<{ children: ReactNode; }> = ( { children } )
     } );
   };
 
-  // Function to remove a product from the cart by its ID..
+  /**
+   * Action: removeFromCart
+   * Leverages the non-mutating `Array.filter` native method to swiftly eject 
+   * a product from the shopping matrix without mutating existing memory references.
+   */
   const removeFromCart = ( productId: string ) =>
   {
     setCartItems( prev => prev.filter( item => item._id !== productId ) );
   };
 
-  // Function to increase the quantity of a product in the cart..
+  /**
+   * Action: increaseQuantity
+   * Iterates standard `Array.map` to patch identical object matches dynamically.
+   */
   const increaseQuantity = ( productId: string ) =>
   {
     setCartItems( prev =>
@@ -80,6 +116,10 @@ export const CartProvider: React.FC<{ children: ReactNode; }> = ( { children } )
   };
 
   // Function to decrease the quantity of a product in the cart..
+  /**
+   * Safely deprecates localized instances of a cart object based on unique identifiers exclusively.
+   * Hard-drops the object safely from the LocalStorage cache the moment quantity values eclipse 0.
+   */
   const decreaseQuantity = ( productId: string ) =>
   {
     setCartItems( prev =>

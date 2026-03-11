@@ -1,3 +1,12 @@
+/* 
+  =========================================
+  Animated SVG Logo Architecture
+  =========================================
+  Pattern: CSS Keyframe "Draw-In" Animation
+  Purpose: Creates a high-end visual effect where the stroke (outline) of an SVG 
+           appears to "draw" itself onto the screen, followed by a solid color fill fade-in.
+*/
+
 .logo-container {
     display: flex;
     justify-content: center;
@@ -11,18 +20,28 @@
     height: auto;
 }
 
+/* 
+  The Core Draw Animation Rules 
+  By setting both the `stroke-dasharray` and `stroke-dashoffset` to a very large number (500),
+  we create a "dashed" line so long that the empty gap covers the entire SVG path.
+  The animation then slowly animates the offset back to 0, making the path visible.
+*/
 .logo-text {
     font-family: 'Poppins', sans-serif;
     font-size: 80px;
     font-weight: 700;
-    fill: none;
+    fill: none; /* Invisible inner body initially */
     stroke: #8672ff;
     stroke-width: 2;
     stroke-dasharray: 500;
     stroke-dashoffset: 500;
-    animation: draw 3s ease forwards;
+    animation: draw 3s ease forwards; /* 'forwards' ensures it stays drawn after 3 seconds */
 }
 
+/* 
+  Keyframe Execution
+  Brings the offset down to 0, effectively pulling the stroke across the canvas.
+*/
 @keyframes draw {
     to {
         stroke-dashoffset: 0;
@@ -31,6 +50,11 @@
     }
 }
 
+/* 
+  State Trigger: .filled
+  Once the stroke finishes, React adds the `.filled` class.
+  This smoothly fades the `fill-opacity` from 0 to 1 over 3 seconds.
+*/
 .logo-svg.filled .logo-text {
     fill-opacity: 1;
     transition: fill-opacity 3s ease;

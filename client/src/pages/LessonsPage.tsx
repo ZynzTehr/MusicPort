@@ -29,13 +29,23 @@ const instruments = [
     }
 ];
 
+/**
+ * LessonsPage Component
+ * 
+ * Architectural Pattern: Static Categorization Hub.
+ * 
+ * Purpose: Unlike generating navigation dynamically from a database, this page hardcodes 
+ * the top-level instrument categories (`const instruments`). This guarantees these primary 
+ * navigational routes (`/lessons/guitar`, `.../bass`) are consistently available 
+ * even if the curriculum database temporarily fails.
+ */
 const LessonsPage: React.FC = () =>
 {
     return (
         <Container className="py-5">
             <div className="text-center mb-5">
                 <h1 className="display-4 fw-bold text-info">Music Academy</h1>
-                <p className="lead text-muted">Choose your instrument and start learning today.</p>
+                <p className="lead">Choose your instrument and start learning today.</p>
             </div>
             <Row xs={ 1 } md={ 2 } className="g-4">
                 { instruments.map( ( inst ) => (

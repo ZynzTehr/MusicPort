@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Modal, Button, Form, Table, Spinner, Image, Badge } from 'react-bootstrap';
 
+/**
+ * TypeScript Interface: Venue (Show)
+ * 
+ * Maps to the backend `Venue`/`Show` schema.
+ * Note the `bands: string[]` array. In the UI form, this is handled as a single comma-separated 
+ * string for ease of typing, but must be split() into a proper Array before API transmission.
+ */
 interface Venue
 {
     _id: string;
@@ -16,14 +23,29 @@ interface Venue
     image: string;
 }
 
+/**
+ * AdminShowsPage Component
+ * 
+ * Architectural Pattern: Complex Admin Dashboard / Form Controller.
+ * 
+ * Purpose: Given the high density of input fields required to create a Venue/Show 
+ * (Location data, Price, Lineup, Times), this component leverages a massive 
+ * controlled state object to keep the DOM synced with React memory.
+ */
 const AdminShowsPage: React.FC = () =>
 {
+    // Master State: Holds the array of all booked shows.
     const [ shows, setShows ] = useState<Venue[]>( [] );
+    
+    // UX State: Prevents premature rendering of empty tables.
     const [ loading, setLoading ] = useState( true );
     const [ showModal, setShowModal ] = useState( false );
+    
+    // Switchboard: Null = "Add Show", Object = "Edit Show"
     const [ editingShow, setEditingShow ] = useState<Venue | null>( null );
 
-    // Form state
+    // Form Binding: Notice `bands` is initialized as a string here, not an array.
+    // This allows the Admin to type "Band A, Band B" naturally in the input field.
     const [ formData, setFormData ] = useState( {
         name: '',
         bands: '', // Managed as comma-separated string for input

@@ -11,9 +11,11 @@ import LessonsPage from './pages/LessonsPage';
 import LandingPage from './pages/LandingPage';
 import InstrumentHub from './pages/InstrumentHub';
 import LessonPage from './pages/LessonPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
 
 // Import Error Page..
-import ErrorPage from './components/ErrorPage';
+import ErrorPage from './pages/ErrorPage';
 
 // Import shared layout components..
 // Import shared layout components..
@@ -31,6 +33,21 @@ import AdminChatPage from './pages/AdminChatPage';
 
 
 
+/**
+ * App Component
+ * 
+ * Architectural Pattern: Global Routing Engine.
+ * 
+ * Purpose: Acts as the absolute traffic switchboard for the entire Single Page Application (SPA).
+ * It leverages React Router v6 to map browser URLs to specific React Virtual DOM components.
+ * 
+ * Key Routing Concepts Utilized here:
+ * 1. Layout Routes: Components like `<MainLayout>` and `<ProtectedAdminRoute>` are used as wrapper elements
+ *    (via the `element` prop) around nested children routes. This avoids duplicating standard UI 
+ *    elements (like Navbars and Footers) across every single page component.
+ * 2. Protected Routes: The `/admin` paths are hidden behind a specialized guardian component 
+ *    that instantly verifies authentication before attempting to render any nested admin dashboards.
+ */
 const App: React.FC = () =>
 {
   return (
@@ -40,6 +57,10 @@ const App: React.FC = () =>
           {/* Route: Home Page */ }
           <Route path="/home" element={ <HomePage /> } />
           <Route path="/" element={ <LandingPage /> } />
+
+          {/* Corporate Pages */}
+          <Route path="/about" element={ <AboutPage /> } />
+          <Route path="/contact" element={ <ContactPage /> } />
 
           {/* Route: Shows Page */ }
           <Route path="/venues" element={ <ShowsPage /> } />
@@ -70,7 +91,12 @@ const App: React.FC = () =>
           </Route>
         </Route>
 
-        {/* Route: Error Page */ }
+        {/* 
+          Fallback Route Strategy (404 Handling)
+          The `/*` essentially functions as an "else" statement for the router.
+          If a user requests a URL that fails to match any of the explicit paths above,
+          they are gracefully caught here and presented with the `<ErrorPage />`.
+        */}
         <Route path="/*" element={ <ErrorPage /> } />
       </Routes>
     </Router>

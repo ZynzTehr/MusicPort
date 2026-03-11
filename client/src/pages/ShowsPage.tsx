@@ -16,6 +16,15 @@ interface Show
   price: number;
 }
 
+/**
+ * ShowsPage Component
+ * 
+ * Architectural Pattern: Complex Filter Hub + Geolocation Consumer.
+ * 
+ * Purpose: Handles displaying all upcoming concerts while offering dual-mode search capabilities:
+ * 1. String-based text filtering (City, State) sent cleanly to the Backend.
+ * 2. Native HTML5 Hardware Geolocation (Lat/Long extraction) triggering a geo-radius backend search.
+ */
 const ShowsPage: React.FC = () =>
 {
   const [ shows, setShows ] = useState<Show[]>( [] );
@@ -31,6 +40,9 @@ const ShowsPage: React.FC = () =>
     loadAllShows();
   }, [] );
 
+  /**
+   * Initializes the aggregate fetch of all database concerts strictly on component mount.
+   */
   const loadAllShows = async () =>
   {
     setLoading( true );
@@ -47,6 +59,10 @@ const ShowsPage: React.FC = () =>
     }
   };
 
+  /**
+   * Intercepts explicit user form submission blocking default reload.
+   * Generates a partial-match filter query passing explicit state/city properties into the API layer directly.
+   */
   const handleSearch = async ( e: React.FormEvent ) =>
   {
     e.preventDefault();
@@ -64,6 +80,10 @@ const ShowsPage: React.FC = () =>
     }
   };
 
+  /**
+   * Engages the native navigator HTML5 geolocation architecture requesting raw user lat/long bounds securely.
+   * Automatically executes the geographic radius queries returning localized concert blocks strictly.
+   */
   const handleGeolocation = () =>
   {
     setLoading( true );

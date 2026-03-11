@@ -1,102 +1,142 @@
 import { Request, Response } from 'express';
-import Product from '../models/Products';
+import prisma from '../database/dbConnection';
 
-/* Export controller to send all product data to frontend from server */
+/**
+ * =========================================
+ * Storefront Product Controller
+ * =========================================
+ * Architectural Pattern: MVC Controller Layer / CRUD Operations
+ * 
+ * Purpose: Interfaces with the Prisma ORM to execute Data Definition requests against 
+ * the PostgreSQL `Product` table. Methods are cleanly separated strictly by function, 
+ * ranging from public storefront queries (GET) to strictly Admin-gated write ops (POST, PUT, DELETE).
+ * Explicitly parses incoming numeric constraints natively.
+ */
+
+/**
+ * Retrieves all products from the Prisma database.
+ *
+ * @param req - The Express request object.
+ * @param res - The Express response object.
+ */
 export const getAllProducts = async ( req: Request, res: Response ) =>
 {
     try
     {
-        const products = await Product.find( {} ); // Get all products..
-        // console.log(products); // (Optional) Debugging log — remove in production..
-        res.json( products );    // Respond with JSON array of products..
+        const products = await prisma.product.findMany();
+        res.json( products );
     } catch ( err: any )
     {
-        res.status( 500 ).json( { message: err.message } ); // Handle server error..
+        res.status( 500 ).json( { message: err.message } );
     }
 };
 
-/* Export controller to send most viewed products to frontend from
-  server for display in featured section of the Home Page */
+/**
+ * Retrieves a limited number of featured products (maximum 6) from the database.
+ * Primarily used for populating the storefront homepage carousel.
+ *
+ * @param req - The Express request object.
+ * @param res - The Express response object.
+ */
 export const getFeaturedProducts = async ( req: Request, res: Response ) =>
 {
     try
     {
-        const featured = await Product.find( {} ).limit( 3 ); // Only return 3 items..
-        res.json( featured ); // Respond with featured product data..
+        const featured = await prisma.product.findMany( { take: 6 } );
+        res.json( featured );
     } catch ( err: any )
     {
-        res.status( 500 ).json( { message: err.message } ); // Handle error..
+        res.status( 500 ).json( { message: err.message } );
     }
 };
 
-/* Export controller to send most relevant data
-  i.e "id" to frontend from server  */
+/**
+ * Retrieves a single product by its unique integer ID.
+ * Returns 404 if the product does not exist.
+ *
+ * @param req - The Express request object containing the product ID in params.
+ * @param res - The Express response object.
+ */
 export const getProductById = async ( req: Request, res: Response ) =>
 {
     try
     {
-        // Get the product ID from the URL param and fetch it from DB..
-        const product = await Product.findById( req.params.id );
-
-        // Return the product data..
+        const product = await prisma.product.findUnique( { where: { id: Number( req.params.id ) } } );
+        if ( !product ) return res.status( 404 ).json( { message: 'Product not found' } );
         res.json( product );
     } catch ( err: any )
     {
-        res.status( 500 ).json( { message: err.message } ); // Catch errors..
+        res.status( 500 ).json( { message: err.message } );
     }
 };
 
-// Create a new product
+/**
+ * Creates a new product record in the database.
+ * Only accessible by administrators. Parses string representations of numbers and booleans.
+ *
+ * @param req - The Express request object containing product details in the body.
+ * @param res - The Express response object.
+ */
 export const createProduct = async ( req: Request, res: Response ) =>
 {
     try
     {
-        const product = await Product.create( req.body );
+        const { price, seeded, ...rest } = req.body;
+        const product = await prisma.product.create( {
+            data: {
+                ...rest,
+                price: parseFloat( price.toString() ),
+                seeded: seeded === true || seeded === 'true'
+            }
+        } );
         res.status( 201 ).json( product );
     } catch ( error: any )
     {
-        if ( error.name === 'ValidationError' )
-        {
-            return res.status( 400 ).json( { message: 'Validation Error', error: error.message } );
-        }
         res.status( 500 ).json( { message: 'Error creating product', error: error.message } );
     }
 };
 
-// Update a product
+/**
+ * Updates an existing product record based on its unique ID.
+ * Dynamically handles partial payload updates for pricing and booleans.
+ *
+ * @param req - The Express request object containing the updated fields and product ID.
+ * @param res - The Express response object.
+ */
 export const updateProduct = async ( req: Request, res: Response ) =>
 {
     try
     {
-        const { id } = req.params;
-        const product = await Product.findByIdAndUpdate( id, req.body, { new: true } );
-        if ( !product )
-        {
-            return res.status( 404 ).json( { message: 'Product not found' } );
-        }
+        const id = Number( req.params.id );
+        const { price, seeded, ...rest } = req.body;
+
+        let updateData: any = { ...rest };
+        if ( price !== undefined ) updateData.price = parseFloat( price.toString() );
+        if ( seeded !== undefined ) updateData.seeded = seeded === true || seeded === 'true';
+
+        const product = await prisma.product.update( {
+            where: { id },
+            data: updateData,
+        } );
         res.status( 200 ).json( product );
     } catch ( error: any )
     {
-        if ( error.name === 'ValidationError' )
-        {
-            return res.status( 400 ).json( { message: 'Validation Error', error: error.message } );
-        }
         res.status( 500 ).json( { message: 'Error updating product', error: error.message } );
     }
 };
 
-// Delete a product
+/**
+ * Deletes a specific product from the database permanently.
+ *
+ * @param req - The Express request object containing the product ID in params.
+ * @param res - The Express response object.
+ */
 export const deleteProduct = async ( req: Request, res: Response ) =>
 {
     try
     {
-        const { id } = req.params;
-        console.log( `Attempting to delete product with ID: ${ id }` );
-        const product = await Product.findByIdAndDelete( id );
-        if ( !product )
-        {
-            return res.status( 404 ).json( { message: 'Product not found' } );
-        }
+        const id = Number( req.params.id );
+        await prisma.product.delete( { where: { id } } );
         res.status( 200 ).json( { message: 'Product deleted successfully' } );
     } catch ( error: any )
     {

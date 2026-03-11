@@ -1,24 +1,60 @@
 import React from 'react';
 import { Card, Button } from 'react-bootstrap';
 
+/**
+ * TypeScript Interface: Product
+ * Note the optional `_id` and `sizes` fields utilizing the `?` operator. 
+ * This grants flexibility depending on whether the product just came from the DB (`_id`) 
+ * or is a mocked/legacy item (`id`).
+ */
 interface Product
 {
-  _id: string;
+  id: number;
+  _id?: string;
   image: string;
   name: string;
   brand: string;
   description: string;
   price: number;
+  sizes?: string[];
 }
 
+/**
+ * TypeScript Interface: ProductCardProps
+ * `onAddToCart` requires the parent component to handle the specific business logic 
+ * of modifying the global cart state array.
+ */
 interface ProductCardProps
 {
   product: Product;
   onAddToCart: ( product: any ) => void;
 }
 
+/**
+ * ProductCard Component
+ * 
+ * Architectural Pattern: Highly Reusable Presentation Component.
+ * Responsible strictly for rendering the UI logic of a single item, managing its own 
+ * micro-state (e.g., specific sizing variants picked from a dropdown) before dispatching 
+ * the payload upstream.
+ */
 const ProductCard: React.FC<ProductCardProps> = ( { product, onAddToCart } ) =>
 {
+  // Local state intelligently defaulting to the first available size in the array (if any exist).
+  const [ selectedSize, setSelectedSize ] = React.useState<string>(
+    product.sizes && product.sizes.length > 0 ? product.sizes[ 0 ] : ''
+  );
+
+  /**
+   * Action Handler: handleAddToCart
+   * Bundles the base product object with the currently selected variant size overlay,
+   * sending the consolidated object up to the parent container.
+   */
+  const handleAddToCart = () =>
+  {
+    onAddToCart( { ...product, selectedSize: selectedSize || null } );
+  };
+
   return (
     <Card className="h-100 border-0 rounded-4 card-glass overflow-hidden hover-lift shadow-lg">
       <div className="position-relative overflow-hidden group">
@@ -42,10 +78,24 @@ const ProductCard: React.FC<ProductCardProps> = ( { product, onAddToCart } ) =>
           </Card.Text>
         </div>
 
+        { product.sizes && product.sizes.length > 0 && (
+          <div className="mb-2">
+            <select
+              className="form-select form-select-sm text-dark"
+              value={ selectedSize }
+              onChange={ ( e ) => setSelectedSize( e.target.value ) }
+            >
+              { product.sizes.map( ( size ) => (
+                <option key={ size } value={ size }>{ size }</option>
+              ) ) }
+            </select>
+          </div>
+        ) }
+
         <Button
           variant="primary"
           className="w-100 rounded-pill fw-bold shadow-glow mt-2"
-          onClick={ () => onAddToCart( product ) }
+          onClick={ handleAddToCart }
         >
           Add to Cart <i className="bi bi-cart-plus ms-1"></i>
         </Button>

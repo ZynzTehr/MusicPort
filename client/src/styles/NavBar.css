@@ -1,0 +1,17 @@
+#sign-out:hover {
+    box-shadow: inset 0 0 10px cyan;
+    cursor: pointer;
+    transform: scale(1.2);
+    border-radius: 50%;
+    filter: blur(0.5px);
+    transition: all 0.3s ease;
+}
+
+#sign-out:focus {
+    box-shadow: inset 0 0 10px cyan;
+    cursor: pointer;
+    transform: scale(1.2);
+    border-radius: 50%;
+    filter: blur(0.5px);
+    transition: all 0.3s ease;
+}

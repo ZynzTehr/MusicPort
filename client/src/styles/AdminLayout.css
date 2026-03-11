@@ -1,18 +1,32 @@
+/* 
+  =========================================
+  AdminLayout CSS Architecture
+  =========================================
+  Pattern: CSS Flexbox / Modern Dashboard Layout
+  Purpose: Establishes the foundational grid and typography for the protected 
+           admin portal. It utilizes a classic fixed-sidebar and flexible-content 
+           model with a clean, high-contrast aesthetic.
+*/
+
 .admin-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f4f6f8;
-  font-family: 'Inter', sans-serif;
+  display: flex; /* Establishes the primary horizontal axis */
+  min-height: 100vh; /* Ensures the dashboard always covers the full viewport height */
+  background-color: #f4f6f8; /* Soft, neutral grounding color to reduce eye strain */
+  font-family: 'Inter', sans-serif; /* Modern, highly legible sans-serif stack */
 }
 
+/* 
+  Sidebar Navigation Shell
+  Fixed width provides predictable visual hierarchy.
+*/
 .admin-sidebar {
   width: 250px;
-  background-color: #1a1c23;
+  background-color: #1a1c23; /* Deep Slate/Charcoal for high contrast against content */
   color: #fff;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Stacks child navigation links vertically */
   padding: 1.5rem;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Subtle 3D lift separating sidebar from content */
 }
 
 .admin-header h2 {
@@ -30,17 +44,22 @@
   gap: 0.5rem;
 }
 
+/*
+  Navigation Interaction States
+  CSS Transitions smooth out the background color changes, creating 
+  a tactile "button press" feel.
+*/
 .admin-nav-item {
   color: #a0aec0;
   text-decoration: none;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease; /* Hardware-accelerated smooth state change */
 }
 
 .admin-nav-item:hover, .admin-nav-item.active {
-  background-color: #2d3748;
+  background-color: #2d3748; /* Lighter shade of sidebar background on focus */
   color: #fff;
 }
 
@@ -50,13 +69,24 @@
   color: #63b3ed;
 }
 
+/* 
+  Dynamic Content Area
+  `flex: 1` commands this wrapper to consume all remaining horizontal space 
+  not occupied by the fixed sidebar.
+*/
 .admin-content {
-  flex: 1;
+  flex: 1; /* Fluid width consumer */
   padding: 2rem;
-  overflow-y: auto;
+  overflow-y: auto; /* Contains scrollbars natively if content exceeds 100vh */
 }
 
-/* Common Admin Page Styles */
+/* 
+  =========================================
+  Common Admin Page Utilities
+  =========================================
+  Reusable classes shared across all Admin dashboards (Users, Shows, Products).
+*/
+
 .admin-page-header {
   margin-bottom: 2rem;
 }

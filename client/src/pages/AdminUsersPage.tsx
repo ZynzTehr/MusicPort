@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+/**
+ * TypeScript Interface: User
+ * 
+ * Extends the standard User shape to include Admin-specific visibility fields 
+ * like `lastLogin` and `createdAt`. This data is sensitive and should never 
+ * be exposed to non-admin frontend clients.
+ */
 interface User
 {
     _id: string;
@@ -12,13 +19,29 @@ interface User
     createdAt: string;
 }
 
+/**
+ * AdminUsersPage Component
+ * 
+ * Architectural Pattern: Moderation Dashboard / Paginated Data Consumer.
+ * 
+ * Purpose: Allows global administrators to view all registered accounts, 
+ * check last-login timestamps for inactivity, and forcefully delete users.
+ */
 const AdminUsersPage: React.FC = () =>
 {
     const [ users, setUsers ] = useState<User[]>( [] );
     const [ loading, setLoading ] = useState( true );
     const [ error, setError ] = useState( '' );
+    
+    /**
+     * Scaling Architecture: Pagination State
+     * Even if a database has 10,000 users, we only ever pull a sliced chunk 
+     * at a time to prevent destroying client-side browser memory.
+     */
     const [ page, setPage ] = useState( 1 );
     const [ totalPages, setTotalPages ] = useState( 1 );
+    
+    // Fallback environmental routing.
     const API = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace( '/api', '' ) : 'http://localhost:4000';
 
     useEffect( () =>

@@ -4,6 +4,11 @@ import { useParams, Link } from 'react-router-dom';
 import { fetchLessonById, markLessonAsComplete } from '../api/lessons';
 import { AuthContext } from '../context/AuthContext';
 
+/**
+ * TypeScript Interface: Lesson
+ * Exposes the structure of a single educational module.
+ * Notably includes the `videoUrl` which will be bound directly to an iframe's source.
+ */
 interface Lesson
 {
     _id: string;
@@ -14,6 +19,15 @@ interface Lesson
     content: string;
 }
 
+/**
+ * LessonPage Component
+ * 
+ * Architectural Pattern: Deep-Link Detail View / Interactive Consumer.
+ * 
+ * Purpose: Analyzes the dynamic React Router URL segment (`:lessonId`) to fetch 
+ * and display a specific video tutorial. It also interfaces directly with the 
+ * global `AuthContext` to sync a user's progress (marking videos as watched).
+ */
 const LessonPage: React.FC = () =>
 {
     const { lessonId } = useParams<{ lessonId: string; }>();
@@ -23,6 +37,12 @@ const LessonPage: React.FC = () =>
     const user = authContext?.user;
     const [ completed, setCompleted ] = useState<boolean>( false );
 
+    /**
+     * Component Mount / Dependency Refresh Lifecycle
+     * 1. Extracts `lessonId` from the browser URL.
+     * 2. Re-fetches database content if the ID changes (user clicked "Next Lesson").
+     * 3. Cross-references the fetched lesson's ID against the Global User Context's `completedLessons` array.
+     */
     useEffect( () =>
     {
         const loadLesson = async () =>
@@ -34,7 +54,7 @@ const LessonPage: React.FC = () =>
                     const { data } = await fetchLessonById( lessonId );
                     setLesson( data );
 
-                    // Check if already completed
+                    // Defensive check: Does the user object exist, and is this ID in their array?
                     if ( user?.completedLessons?.some( ( id: any ) => id.toString() === data._id ) )
                     {
                         setCompleted( true );
@@ -49,7 +69,7 @@ const LessonPage: React.FC = () =>
             }
         };
         loadLesson();
-    }, [ lessonId, user ] );
+    }, [ lessonId, user ] ); // Re-run if the URL changes OR if the User logs in/out.
 
     const handleComplete = async () =>
     {

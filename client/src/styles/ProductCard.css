@@ -1,15 +1,35 @@
+/* 
+  =========================================
+  ProductCard CSS Architecture
+  =========================================
+  Pattern: Interactive CSS Hover Transforms
+  Purpose: Dictates the tactile feel of individual product listings. 
+           Uses hardware-accelerated transforms (`translateY`, `scale`) 
+           to avoid expensive geometry recalculations on the main thread.
+*/
+
 .product-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    overflow: hidden;
+    overflow: hidden; /* Contains the image zoom effect to strictly within the border radius */
     height: 100%;
     cursor: pointer;
 }
 
+/* 
+  Card Lift Effect
+  Raises the card off the page along the Z-axis while casting a deeper shadow.
+*/
 .product-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
 }
 
+/* 
+  Image Zoom Effect
+  Targets the Bootstrap standard `.card-img-top` class to scale the image
+  slightly outward. Because the parent `.product-card` has `overflow: hidden`,
+  it creates a cinematic crop-zoom.
+*/
 .product-card .card-img-top {
     transition: transform 0.5s ease;
 }
@@ -18,13 +38,17 @@
     transform: scale(1.05);
 }
 
+/* 
+  Cart Button Interaction
+  Specific styling targeting the nested checkout CTA button inside the card.
+*/
 .product-card .btn-cart {
-    background: linear-gradient(45deg, #1f1c2c, #928dab);
+    background: linear-gradient(45deg, #1f1c2c, #928dab); /* Metallic preset gradient */
     border: none;
     transition: all 0.2s;
 }
 
 .product-card .btn-cart:hover {
-    filter: brightness(1.2);
-    transform: scale(1.05);
+    filter: brightness(1.2); /* Cheap CSS native filter acting as a hover-glow */
+    transform: scale(1.05); /* Slight puff up on hover */
 }

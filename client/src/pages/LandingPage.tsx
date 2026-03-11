@@ -2,10 +2,23 @@ import React, { useEffect, useState } from 'react';
 import AnimatedLogo from '../components/AnimatedLogo';
 import AuthForm from '../components/AuthForm';
 
+/**
+ * LandingPage Component
+ * 
+ * Architectural Pattern: Entry Point / Aesthetic Portal.
+ * 
+ * Purpose: This is the very first visual element an unauthenticated user sees at `/`. 
+ * It focuses entirely on a high-impact aesthetic experience, wrapping the animated 
+ * logo and the authentication gatekeeper (`<AuthForm>`).
+ */
 const LandingPage: React.FC = () =>
 {
-    // We can control the form visibility purely with CSS animation delays (as implemented in AuthForm.css)
-    // or adding conditional rendering here. The CSS delay is 3s.
+    /**
+     * Animation Nuance:
+     * The form visibility is controlled purely with CSS animation delays (implemented in AuthForm.css).
+     * The React DOM paints everything simultaneously, but CSS Opacity and Translate delay 
+     * the form's appearance until 3 seconds after the logo animation fires.
+     */
 
     return (
         <div style={ {

@@ -2,8 +2,17 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Card, Col, Row, Spinner } from 'react-bootstrap';
 
+/**
+ * AdminDashboard Component
+ * 
+ * Architectural Pattern: Aggregator / Analytics View.
+ * Purpose: Serves as the landing hub for Administrators. It aggressively fetches 
+ * metadata (counts) across multiple independent database collections to provide 
+ * a high-level bird's-eye view of platform health.
+ */
 const AdminDashboard: React.FC = () =>
 {
+    // Centralized state object specifically tracking numerical KPI metrics.
     const [ stats, setStats ] = useState( {
         users: 0,
         products: 0,
@@ -12,23 +21,30 @@ const AdminDashboard: React.FC = () =>
     } );
     const [ loading, setLoading ] = useState( true );
 
+    // Mount lifecycle: Trigger data aggregation immediately.
     useEffect( () =>
     {
         const fetchStats = async () =>
         {
             try
             {
+                // Security verification: Block the aggregate query if they spoofed the route guard.
                 const token = sessionStorage.getItem( 'token' );
                 if ( !token ) return;
 
                 const headers = { Authorization: `Bearer ${ token }` };
 
-                // Parallel requests
+                /**
+                 * Concurrency Optimization: Promise.all()
+                 * Instead of waiting 1 second for Users, THEN 1 second for Products (2 seconds total),
+                 * we fire all four API requests simultaneously. The longest request dictates the 
+                 * total loading time. This is a massive UX performance upgrade.
+                 */
                 const [ usersRes, productsRes, showsRes, lessonsRes ] = await Promise.all( [
-                    axios.get( '/api/users', { headers } ),
-                    axios.get( '/api/products' ),
-                    axios.get( '/api/shows' ),
-                    axios.get( '/api/lessons' )
+                    axios.get( '/api/users', { headers } ), // Requires Admin JWT
+                    axios.get( '/api/products' ),           // Public route
+                    axios.get( '/api/shows' ),              // Public route
+                    axios.get( '/api/lessons' )             // Public route
                 ] );
 
                 // Handle users response which might be paginated

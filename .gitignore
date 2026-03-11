@@ -33,3 +33,6 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Local test scripts
+client/scripts/

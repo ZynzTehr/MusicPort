@@ -10,29 +10,55 @@ import { CartContext } from '../context/CartContext';
 // Import the modal component used for sign in / sign up / edit profile..
 import AuthModal from './AuthModal';
 
+// Import NavBar styles..
+import '../styles/NavBar.css';
+
 // Define the base API URL using the environment variable..
 const API = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace( '/api', '' ) : 'http://localhost:4000';
 
+/**
+ * Navbar Component (AppNavbar)
+ *
+ * Architectural Pattern: Global Smart Component / Connected Component.
+ * Omnipresent navigational shell persistent natively across all public and user-secured route paths.
+ * Dynamically swaps its UI hierarchy actively rendering user profile blobs, dynamic shopping cart counts,
+ * and explicit context triggers like Logout functionality directly reacting to global state.
+ */
 const AppNavbar: React.FC = () =>
 {
-  const location = useLocation(); // Hook to get the current route..
-  const authContext = useContext( AuthContext ); // Get current user and signOut method from context..
+  // Hook to read the current route path (useful for determining active link states).
+  const location = useLocation();
+
+  // Consume Contexts to determine exactly "who" is looking at the screen, and "what" they own.
+  const authContext = useContext( AuthContext );
   const cartContext = useContext( CartContext );
 
+  // Fail-Safe: In a well-architected app, if a developer accidentally renders <AppNavbar>
+  // *outside* of the Context Providers, we explicitly crash it with a helpful error.
   if ( !authContext || !cartContext )
   {
-    throw new Error( "Navbar must be used within AuthProvider and CartProvider" );
+    throw new Error( "Navbar must be used strictly within an AuthProvider and CartProvider root wrapper." );
   }
 
+  // Object destructuring isolates the specific state nodes / functions we care about.
   const { user, signOut } = authContext;
   const { cartItems } = cartContext;
 
-  // Local UI state to control the auth modal visibility and mode..
-  const [ showModal, setShowModal ] = useState<boolean>( false ); // Controls whether modal is visible..
-  const [ modalMode, setModalMode ] = useState<'auth' | 'join' | 'edit'>( 'auth' ); // Can be 'auth', 'join', or 'edit'..
+  /**
+   * Local UI State vs Global State
+   *
+   * While Authentication is global, the *visibility* of the Auth Modal is purely a localized UI concern.
+   * `modalMode` leverages a Discriminated Union type ('auth' | 'join' | 'edit') to force the child
+   * <AuthModal /> into the mathematically correct view state.
+   */
+  const [ showModal, setShowModal ] = useState<boolean>( false );
+  const [ modalMode, setModalMode ] = useState<'auth' | 'join' | 'edit'>( 'auth' );
 
 
-  // Checks for time and returns a greeting depending on the rime of day..
+  /**
+   * UI Polish: Dynamic Time-of-Day logic
+   * Analyzes the local browser clock strictly to render contextual greetings.
+   */
   const getGreeting = () =>
   {
     const hour = new Date().getHours();
@@ -41,6 +67,13 @@ const AppNavbar: React.FC = () =>
     return 'Good Morning';
   };
 
+  /**
+   * Helper Function: navLinkClass
+   *
+   * Checks the `location.pathname` against a strict target route.
+   * Dynamically applies an "active state" CSS class (`text-primary fw-bold`)
+   * if the user is currently looking at that exact page.
+   */
   const navLinkClass = ( path: string ) =>
     `nav-link ms-2 transition-colors duration-200 ${ location.pathname === path ? 'text-primary fw-bold' : 'text-light hover:text-white' }`;
 
@@ -107,7 +140,8 @@ const AppNavbar: React.FC = () =>
 
                     {/* Sign out button */ }
                     <button
-                      className='btn btn-sm text-gradient hover:text-danger ms-2'
+                      id='sign-out'
+                      className='btn btn-sm text-gradient ms-2'
                       onClick={ signOut }
                       title="Sign Out"
                     >

@@ -1,21 +1,34 @@
 const { log } = console;
-// Import React tools, and Boostrat's Card for component styling..
+
+// Import React hooks and Bootstrap's Card component for structured UI layout.
 import React from 'react';
 import { Card } from 'react-bootstrap';
 
+/**
+ * TypeScript Interface: Venue
+ * 
+ * Maps directly to the backend's Mongoose Schema for a "Show" or "Venue".
+ * Ensures the frontend knows exactly what data shape to expect when rendering the card.
+ */
 interface Venue
 {
-  _id: string;
-  image: string;
-  name: string;
-  bands: string[];
+  _id: string;          // Database UUID.
+  image: string;        // URL string pointing to the venue promotional image.
+  name: string;         // Headlining act or primary event name.
+  bands: string[];      // Array of strings representing the lineup.
   address: string;
   city: string;
   state: string;
   zipcode: string;
-  price: number;
+  price: number;        // Explicit numeric typing for currency formatting later.
 }
 
+/**
+ * TypeScript Interface: ShowCardProps
+ * 
+ * This component acts as a "Dumb/Presentational Component". It takes a single `venue` 
+ * object as a Prop and paints the UI, holding zero local state itself.
+ */
 interface ShowCardProps
 {
   venue: Venue;

@@ -4,24 +4,35 @@ import { CartContext } from '../context/CartContext'; // Global cart state..
 import { AuthContext } from '../context/AuthContext'; // Global user auth state..
 import CheckoutModal from './CheckoutModal'; // Checkout modal component..
 
+/**
+ * ShoppingCart Component
+ * 
+ * Architectural Type: Context-driven smart component.
+ * Purpose: Provides a persistent slide-out or sidebar representation of the user's queued
+ * purchases. It actively subscribes to global changes inside `CartContext`.
+ */
 const ShoppingCart: React.FC = () =>
 {
-  // Extract cart actions and data from CartContext..
+  // Intercept the globally available Cart and Auth stores.
+  // This circumvents the "Prop Drilling" anti-pattern completely.
   const cartContext = useContext( CartContext );
   const authContext = useContext( AuthContext );
 
+  // Safety net: Always ensure the Context trees actually wrapped this part of the app.
   if ( !cartContext || !authContext ) return null;
 
+  // Destructure mutative handlers and array data natively.
   const { cartItems, removeFromCart, increaseQuantity, decreaseQuantity } = cartContext;
   const { user } = authContext;
 
-  // Get current user info from AuthContext..
-
-
-  // Local state to control visibility of checkout modal..
+  // Local state controls the complex modal launch logic keeping parent state clean.
   const [ showCheckout, setShowCheckout ] = useState( false );
 
-  // Calculate the subtotal for all items in the cart..
+  /**
+   * Functional Programming: Array.reduce()
+   * Iterates automatically through every item applying the mathematical accumulator (sum) 
+   * against individual line-item totals (price * quantity). Initialized strictly at 0.
+   */
   const subtotal = cartItems.reduce( ( sum: number, item: any ) => sum + item.price * item.quantity, 0 );
 
   return (
@@ -50,7 +61,7 @@ const ShoppingCart: React.FC = () =>
             >
               {/* Product details */ }
               <div>
-                <strong>{ item.name }</strong><br />
+                <strong>{ item.name } { item.selectedSize ? `(Size: ${ item.selectedSize })` : '' }</strong><br />
                 <span className="text-muted">
                   ${ item.price } × { item.quantity }
                 </span>
